@@ -1,0 +1,33 @@
+<!-- 请实现左右两栏布局，其中左侧盒子宽度始终为500px，右侧盒子随窗口变化而变化 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .container {
+      display: flex;
+    }
+    .left {
+      width: 500px;
+      background-color: red;
+    }
+    .right {
+      flex: 1;
+      background-color: blue;
+    }
+  </style>
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left">
+      <h1>左侧盒子</h1>
+    </div>
+    <div class="right">
+      <h1>右侧盒子</h1>
+    </div>
+  </div>
+</body>
+</html>
