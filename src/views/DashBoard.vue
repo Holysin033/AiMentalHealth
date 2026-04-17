@@ -1,10 +1,10 @@
 <template>
   <div>
-    <router-view></router-view>
+    <h1>仪表盘</h1>
   </div>
 </template>
 
-<script setup name="App">
+<script setup name="Dashboard">
 
 </script>
 

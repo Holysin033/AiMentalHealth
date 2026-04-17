@@ -1,10 +1,10 @@
 <template>
   <div>
-    <router-view></router-view>
+    导航栏
   </div>
 </template>
 
-<script setup name="App">
+<script setup name="SideBar">
 
 </script>
 
