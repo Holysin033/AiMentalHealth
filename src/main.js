@@ -3,7 +3,7 @@ import { createApp } from 'vue'
 import './assets/config.css'
 import App from './App.vue'
 import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
+// import 'element-plus/dist/index.css'// 引入element-plus的样式(已经使用自动导入，不需要引入了)
 import router from './router'
 
 const app = createApp(App) //创建vue实例
