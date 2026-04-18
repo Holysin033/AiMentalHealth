@@ -12,28 +12,36 @@ const routes = [
     component: BackendLayout,
     children: [
       {
-        path:'dashboard',
+        path: 'dashboard',
         // name:'dashboard',
-        component:()=>import('@/views/DashBoard.vue'),
-        meta:{
-          title:'数据分析',
-          icon:'PieChart',
+        component: () => import('@/views/DashBoard.vue'),
+        meta: {
+          title: '数据分析',
+          icon: 'PieChart',
         }
       },
       {
-        path:'knowledge',
-        component:()=>import('@/views/Knowledge.vue'),
-        meta:{
-          title:'知识文章',
-          icon:'Document',
+        path: 'knowledge',
+        component: () => import('@/views/Knowledge.vue'),
+        meta: {
+          title: '知识文章',
+          icon: 'ChatLineSquare',
         }
       },
       {
-        path:'consultation',
-        component:()=>import('@/views/Consultation.vue'),
-        meta:{
-          title:'咨询记录',
-          icon:'Document',
+        path: 'consultation',
+        component: () => import('@/views/Consultation.vue'),
+        meta: {
+          title: '咨询记录',
+          icon: 'Message',
+        }
+      },
+      {
+        path: 'emotion',
+        component: () => import('@/views/Emotion.vue'),
+        meta: {
+          title: '情感日志',
+          icon: 'User',
         }
       }
     ]
