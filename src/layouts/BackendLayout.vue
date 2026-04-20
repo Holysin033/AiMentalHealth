@@ -4,8 +4,8 @@
       <side-bar/>
       <el-container>
         <el-header><nav-bar/></el-header>
-        <el-main>
-          <router-view></router-view>
+        <el-main class="main-container">
+          <router-view class="content-container"></router-view>
         </el-main>
         <!-- <el-footer>Footer</el-footer> -->
       </el-container>
@@ -21,8 +21,16 @@ import NavBar from "@/components/NavBar.vue";
 <style lang="scss" scoped>
 .backend-layout {
   height: 100vh;
+  .el-header{
+    height: 74px !important;
+  }
   .main-container {
     height: 100%;
+    .content-container {
+      padding: 20px;
+      background-color: #fff;
+      min-height: calc(100% - 74px);
+    }
   }
 }
 </style>

@@ -1,23 +1,15 @@
 <template>
-  <el-aside width="264px">
-    <el-menu default-active="1" class="menu-style" @open="handleOpen">
+  <el-aside :width="isCollaspe ? '64px' : '264px'">
+    <el-menu default-active="1" class="menu-style" @open="handleOpen" :collapse="isCollaspe"
+      :collapse-transition="false">
       <div class="brand">
-        <el-image
-          :src="logoUrl"
-          alt="logo"
-          style="width: 50px; margin-right: 10px"
-        />
-        <div class="info-card">
+        <el-image :src="logoUrl" alt="logo" :class="{'brand-logo': !isCollaspe}" />
+        <div class="info-card" v-show="!isCollaspe">
           <h1 class="brand-title">AI心理健康助手</h1>
           <p class="brand-subtitle">后台管理</p>
         </div>
       </div>
-      <el-menu-item
-        v-for="item in backendMenuItem"
-        :key="item.path"
-        :index="item.path"
-        @click="selectMenu"
-      >
+      <el-menu-item v-for="item in backendMenuItem" :key="item.path" :index="item.path" @click="selectMenu">
         <el-icon>
           <component :is="getMenuIcon(item.meta.icon)" />
         </el-icon>
@@ -30,8 +22,12 @@
 <script setup name="SideBar">
 import { useRouter } from "vue-router";
 import * as ElIcons from "@element-plus/icons-vue";
+import { useAdminStore } from '@/store/admin'
+import { storeToRefs } from "pinia";
 
 const router = useRouter();
+const adminStore = useAdminStore();
+const { isCollaspe } = storeToRefs(adminStore);
 const backendMenuItem = router.options.routes[0]?.children; //获取后台路由
 
 //获取logo路径,需要在import.meta.url中添加路径，这么做是为了在开发环境下使用相对路径，而在生产环境下使用绝对路径
@@ -64,6 +60,11 @@ const selectMenu = (key) => {
     padding: 10px;
     background-color: #fff;
     border-bottom: 1px solid #e5e7eb;
+
+    .el-image.brand-logo {
+      width: 50px;
+      margin-right: 10px
+    }
 
     .info-card {
       .brand-title {

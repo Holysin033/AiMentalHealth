@@ -2,10 +2,6 @@ import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router
 import BackendLayout from '@/layouts/BackendLayout.vue'
 //配置路由表
 const routes = [
-  // {
-  //   path: '/',
-  //   redirect: '/back',
-  // },
   {
     path: '/back',
     name: 'backend',

@@ -1,7 +1,7 @@
 <template>
   <div class="navbar">
     <div class="flex-box">
-      <el-button>
+      <el-button @click="toggleCollapse()">
         <el-icon>
           <ep-expand></ep-expand>
         </el-icon>
@@ -9,9 +9,9 @@
       <p class="page-title">{{ pageTitle }}</p>
     </div>
     <div class="flex-box">
-      <el-dropdown @command="handleCommand" @visible-change="handleVisibleChange">
+      <el-dropdown @command="handleCommand">
         <div class="flex-box">
-          <el-avatar :src="avatarUrl" alt="avatar" @error="handleError" v-if="!avatarState" />
+          <el-avatar :src="avatarUrl" alt="avatar" @error="handleError" v-if="!stateV.avatarState" />
           <el-avatar :src="avatarUrl" shape="square" alt="avatar" v-else>
             <p style="color: #fff;font-size: 12px;">Admin</p>
           </el-avatar>
@@ -31,16 +31,24 @@
 </template>
 
 <script setup name="NavBar">
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import { useAdminStore } from '@/store/admin'
 const route = useRoute();
+const adminStore = useAdminStore()
+const { toggleCollapse } = adminStore// 引入切换展开状态的方法
 const avatarUrl = "https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png";
 const username = "admin";
 const stateV = reactive({
   avatarState: false,
 });
 const pageTitle = computed(() => route.meta.title || "导航栏");
-
+// 或者使用watch
+// const pageTitle = ref("导航栏");
+// watch(route, (newRoute) => {
+//   pageTitle.value = newRoute.meta.title || "导航栏";
+// }, { immediate: true });
+// 点击侧展开按钮
 const handleCommand = (command) => {
   console.log(command);
   if (command === "logout") {
@@ -56,7 +64,7 @@ const handleError = () => {
 
 <style lang="scss" scoped>
 .navbar {
-  height: 64px;
+  height: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;

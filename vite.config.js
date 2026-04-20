@@ -30,9 +30,7 @@ export default defineConfig({
     Components({
       resolvers: [
         // 解析 Element Plus 组件
-        ElementPlusResolver({
-          importStyle: 'css',
-        }),
+        ElementPlusResolver(),
         // 解析图标组件,启用 Element Plus 图标集
         // 使用自动导入图标格式 {prefix}-{collection}-{icon},感觉不如按需导入方便
         // IconsResolver({ prefix: 'I',enabledCollections: ['ep'] }),
