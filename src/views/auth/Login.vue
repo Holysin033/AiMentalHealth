@@ -63,7 +63,7 @@ const submitForm = async (formEl) => {
           localStorage.setItem('userInfo', JSON.stringify(userInfo))
           // 判断角色类型
           if (userInfo.userType === 2 && userInfo.userTypeDisplayName === '管理员') {
-            router.push('/back/dashboard')
+            router.push('/back/knowledge')
           }
         }
         else {

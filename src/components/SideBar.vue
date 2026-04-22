@@ -1,10 +1,10 @@
 <template>
-  <el-aside :width="isCollaspe ? '64px' : '264px'">
-    <el-menu default-active="1" class="menu-style" @open="handleOpen" :collapse="isCollaspe"
+  <el-aside :width="isCollapse ? '64px' : '264px'">
+    <el-menu default-active="1" class="menu-style" @open="handleOpen" :collapse="isCollapse"
       :collapse-transition="false">
       <div class="brand">
-        <el-image :src="logoUrl" alt="logo" :class="{'brand-logo': !isCollaspe}" />
-        <div class="info-card" v-show="!isCollaspe">
+        <el-image :src="logoUrl" alt="logo" :class="{'brand-logo': !isCollapse}" />
+        <div class="info-card" v-show="!isCollapse">
           <h1 class="brand-title">AI心理健康助手</h1>
           <p class="brand-subtitle">后台管理</p>
         </div>
@@ -27,7 +27,7 @@ import { storeToRefs } from "pinia";
 
 const router = useRouter();
 const adminStore = useAdminStore();
-const { isCollaspe } = storeToRefs(adminStore);
+const { isCollapse } = storeToRefs(adminStore);
 const backendMenuItem = router.options.routes[0]?.children; //获取后台路由
 
 //获取logo路径,需要在import.meta.url中添加路径，这么做是为了在开发环境下使用相对路径，而在生产环境下使用绝对路径

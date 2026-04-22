@@ -2,15 +2,15 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 export const useAdminStore = defineStore('admin', () => {
   // 展开状态
-  const isCollaspe = ref(false)
+  const isCollapse = ref(false)
   const toggleCollapse = () => {
     // 切换展开状态
-    isCollaspe.value = !isCollaspe.value
-    console.log(isCollaspe.value);
-    
+    isCollapse.value = !isCollapse.value
+    // console.log(isCollapse.value);
+
   }
   return {
-    isCollaspe,
+    isCollapse,
     toggleCollapse
   }
 }, { persist: true })

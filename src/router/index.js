@@ -13,7 +13,7 @@ const backendRoutes = [
       {
         path: 'dashboard',
         // name:'dashboard',
-        component: () => import('@/views/DashBoard.vue'),
+        component: () => import('@/views/backend/DashBoard.vue'),
         meta: {
           title: '数据分析',
           icon: 'PieChart',
@@ -21,7 +21,7 @@ const backendRoutes = [
       },
       {
         path: 'knowledge',
-        component: () => import('@/views/Knowledge.vue'),
+        component: () => import('@/views/backend/Knowledge.vue'),
         meta: {
           title: '知识文章',
           icon: 'ChatLineSquare',
@@ -29,7 +29,7 @@ const backendRoutes = [
       },
       {
         path: 'consultation',
-        component: () => import('@/views/Consultation.vue'),
+        component: () => import('@/views/backend/Consultation.vue'),
         meta: {
           title: '咨询记录',
           icon: 'Message',
@@ -37,7 +37,7 @@ const backendRoutes = [
       },
       {
         path: 'emotion',
-        component: () => import('@/views/Emotion.vue'),
+        component: () => import('@/views/backend/Emotion.vue'), //Emotion.vue
         meta: {
           title: '情感日志',
           icon: 'User',
@@ -53,7 +53,7 @@ const backendRoutes = [
       {
         path:'login',
         name:'login',
-        component: () => import('@/views/Login.vue'),
+        component: () => import('@/views/auth/Login.vue'),
         meta: {
           title: '登录',
         }
@@ -61,7 +61,7 @@ const backendRoutes = [
       {
         path:'register',
         name:'register',
-        component: () => import('@/views/Register.vue'),
+        component: () => import('@/views/auth/Register.vue'),
         meta: {
           title: '注册',
         }

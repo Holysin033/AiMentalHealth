@@ -2,9 +2,12 @@
   <div class="navbar">
     <div class="flex-box">
       <el-button @click="toggleCollapse()">
-        <el-icon>
-          <ep-expand></ep-expand>
-        </el-icon>
+        <template v-if="isCollapse">
+          <el-icon color="#67c23a" size="20"><ep-expand /></el-icon>
+        </template>
+        <template v-else>
+          <el-icon color="#409eff" size="20"><ep-fold /></el-icon>
+        </template>
       </el-button>
       <p class="page-title">{{ pageTitle }}</p>
     </div>
@@ -34,8 +37,10 @@
 import { computed, reactive, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useAdminStore } from '@/store/admin'
+import { storeToRefs } from 'pinia'
 const route = useRoute();
 const adminStore = useAdminStore()
+const { isCollapse } = storeToRefs(adminStore) // 引入store中的isCollapse
 const { toggleCollapse } = adminStore// 引入切换展开状态的方法
 const avatarUrl = "https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png";
 const username = "admin";
