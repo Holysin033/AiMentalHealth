@@ -1,7 +1,10 @@
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import BackendLayout from '@/layouts/BackendLayout.vue'
+import AuthLayout from '@/layouts/AuthLayout.vue'
+
+
 //配置路由表
-const routes = [
+const backendRoutes = [
   {
     path: '/back',
     name: 'backend',
@@ -42,12 +45,36 @@ const routes = [
       }
     ]
   },
+  {
+    path:'/auth',
+    name:'auth',
+    component: AuthLayout,
+    children:[
+      {
+        path:'login',
+        name:'login',
+        component: () => import('@/views/Login.vue'),
+        meta: {
+          title: '登录',
+        }
+      },
+      {
+        path:'register',
+        name:'register',
+        component: () => import('@/views/Register.vue'),
+        meta: {
+          title: '注册',
+        }
+      }
+    ]
+  }
 ]
 const router = createRouter({
-  strict: true,//严格模式
+  strict: true,//严格模式,是否禁止尾部斜线。
   // sensitive: true,//大小写敏感模式
   scrollBehavior: () => ({ top: 0 }), //滚动行为
   history: createWebHistory(),
-  routes,
+  routes: backendRoutes,
+  base: '/',
 })
 export default router

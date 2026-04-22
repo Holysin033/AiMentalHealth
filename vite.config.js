@@ -52,4 +52,14 @@ export default defineConfig({
       '@': pathSrc,
     },
   },
+  // 配置代理, 解决跨域问题
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://159.75.169.224:1235/api', // 代理的目标地址
+        changeOrigin: true, // 是否改变源服务器的域名，true表示改变，false表示不改变
+        rewrite: (path) => path.replace(/^\/api/, '') // 重写路径，将/api替换为空字符串
+      }
+    }
+  }
 })
