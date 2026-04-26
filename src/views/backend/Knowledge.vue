@@ -2,8 +2,8 @@
   <div>
     <page-head>
       <template #buttons>
-        <el-button type="primary">新增</el-button>
-        <el-button type="success">编辑</el-button>
+        <el-button type="success">新增</el-button>
+        <el-button type="primary">编辑</el-button>
       </template>
     </page-head>
     <table-search :form-item="formItem" @search="handleSearch" />
@@ -36,16 +36,16 @@
       <el-table-column prop="authorName" label="作者" width="150" align="center" />
       <el-table-column prop="readCount" label="阅读量" width="75" align="center" />
       <el-table-column prop="publishedAt" label="发布时间" width="200" align="center" />
-      <el-table-column prop="statusText" label="状态" width="150" align="center"/>
+      <el-table-column prop="statusText" label="状态" width="150" align="center" />
 
       <el-table-column label="操作" width="200" fixed="right" align="center">
-        <template #default="{ row: { categoryId } }">
-          <div style="display: flex;align-items: center;">
-            <el-icon color="red">
-              <ep-flag></ep-flag>
-            </el-icon>
-            <span>&emsp;{{ cateMap[categoryId] }}</span>
-          </div>
+        <template #default="scope">
+          <el-button-group direction="horizontal" size="small">
+            <el-button type="primary" text>编辑</el-button>
+            <el-button type="success" text v-if="scope.row.status===0||scope.row.status===2">发布</el-button>
+            <el-button type="warning" text v-if="scope.row.status===1">下线</el-button>
+            <el-button type="danger" text >删除</el-button>
+          </el-button-group>
         </template>
       </el-table-column>
     </el-table>
@@ -115,6 +115,7 @@ const requestList = async (formData) => {
   const { records, total: totalNum } = await getKnowledgeArticleList(params)
   tableData.value = records
   pagination.total = totalNum
+  
 }
 const handleSearch = (formData) => {
   // console.log(formData);
