@@ -2,15 +2,16 @@
   <div>
     <page-head>
       <template #buttons>
-        <el-button type="success">新增</el-button>
-        <el-button type="primary">编辑</el-button>
+        <el-button type="success" @click="toggleArticleDialogVisible()"
+          >新增</el-button
+        >
       </template>
     </page-head>
     <table-search :form-item="formItem" @search="handleSearch" />
     <el-table
       :data="tableData"
       stripe
-      style="width: 100%; margin-top: 25px"
+      style="width: 100%; margin-top: 25px; cursor: pointer"
       highlight-current-row
       border
       show-overflow-tooltip
@@ -106,15 +107,19 @@
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
     />
+    <article-dialog :cateList="cateList" />
   </div>
 </template>
 
 <script setup name="Knowledge">
 import PageHead from "@/components/PageHead.vue";
 import TableSearch from "@/components/TableSearch.vue";
+import ArticleDialog from "@/views/backend/ArticleDialog.vue";
 import { ref, onMounted, reactive } from "vue";
 import { getKnowledgeCate, getKnowledgeArticleList } from "@/api/admin";
+import { useAdminStore } from "@/store/admin.js";
 
+const adminStore = useAdminStore();
 const formItem = ref([
   {
     comp: "input",
@@ -154,6 +159,8 @@ const requestCate = async () => {
       value: item.id,
     };
   });
+  console.log(cateList.value);
+  
   formItem.value[1].options = cateList.value;
 };
 
@@ -175,7 +182,7 @@ const requestList = async (formData) => {
   const { records, total: totalNum } = await getKnowledgeArticleList(params);
   tableData.value = records;
   pagination.total = totalNum;
-  console.log(records);
+  // console.log(records);
 };
 // 搜索文章
 const handleSearch = (formData) => {
@@ -194,6 +201,10 @@ const handleCurrentChange = (page) => {
   pagination.currentPage = page;
   handleSearch();
 };
+
+//新增和编辑文章
+const { toggleArticleDialogVisible } = adminStore;
+
 //生命周期：挂载完成后请求文章分类、文章列表
 onMounted(() => {
   requestCate();
