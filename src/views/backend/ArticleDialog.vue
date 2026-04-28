@@ -23,16 +23,32 @@
       <el-form-item label="封面图片" prop="coverImage">
         <div class="cover-upload">
           <el-upload ref="uploadRef" action="#" :before-upload="beforeUpload" :http-request="handleUploadRequest"
-            accept="image/*" drag :show-file-list="false" :limit="1">
+            accept="image/*" drag :limit="1" :show-file-list="false">
             <div class="cover-preview" v-if="!imgUrl">
               <p>拖拽或点击上传封面图片</p>
             </div>
-            <el-image class="cover-preview" fit="cover" :src="imgUrl" alt="封面图片" v-else />
+            <div v-else class="cover-preview-wrapper">
+              <el-image class="cover-preview" fit="cover" :src="imgUrl" alt="封面图片" />
+              <el-button type="primary" size="small" @click="openCropper">裁剪图片</el-button>
+            </div>
           </el-upload>
           <el-button v-if="imgUrl" type="danger" size="small" @click="removeCover">移除封面</el-button>
         </div>
       </el-form-item>
     </el-form>
+  </el-dialog>
+
+  <!-- 图片裁剪弹窗 -->
+  <el-dialog title="裁剪封面图片" v-model="cropperVisible" width="800px" :close-on-click-modal="false">
+    <div class="cropper-container">
+      <vue-cropper ref="cropperRef" :img="cropperImage" :output-size="1" :output-type="'png'" :info="true"
+        :can-scale="true" :auto-crop="true" :fixed="true" :fixed-number="[16, 9]" :center-box="true" :high="true"
+        mode="contain" />
+    </div>
+    <template #footer>
+      <el-button @click="cancelCropper">取消</el-button>
+      <el-button type="primary" @click="confirmCropper">确认裁剪</el-button>
+    </template>
   </el-dialog>
 </template>
 
