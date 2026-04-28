@@ -22,3 +22,7 @@ export const uploadFile = async (file, businessInfo) => {
   formData.append('businessField', 'cover')
   return await service.post('/file/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
 }
+//文章新增 /knowledge/article
+export const createArticle = async (data) => {
+  return await service.post('/knowledge/article', data)
+}

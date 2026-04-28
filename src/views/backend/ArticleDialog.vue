@@ -3,7 +3,7 @@
     title="文章详情"
     v-model="articleDialogVisible"
     width="50%"
-    @close="toggleArticleDialogVisible()"
+    @close="closeArticleDialog()"
   >
     <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px">
       <el-form-item label="文章标题" prop="title">
@@ -82,25 +82,48 @@
       </el-form-item>
       <el-form-item label="文章内容" prop="content">
         <RichTextEditor
+          ref="editorRef"
           v-model="formData.content"
-          placeholder="请输入文章内容，支持富文本格式\n\n可以使用加粗、斜体、列表、标题等格式丰富内容"
-          :maxCharCount="5000"
-          min-height="400px"
+          placeholder="请输入文章内容，支持富文本格式，可以使用加粗、斜体、列表、标题等格式丰富内容"
+          :max-char-count="5000"
+          min-height="310px"
           @change="handleContentChange"
           @created="handleCreated"
         />
       </el-form-item>
     </el-form>
+    <div v-if="btnPreview" class="preview-content">
+      <h3>内容预览</h3>
+      <div v-html="formData.content"></div>
+    </div>
+    <template #footer class="footer-btn">
+      <el-button
+        type="primary"
+        size="default"
+        @click="btnPreview = !btnPreview"
+        >{{ btnPreview ? "隐藏预览" : "预览效果" }}</el-button
+      >
+      <el-button type="default" size="default" @click="closeArticleDialog()"
+        >取消</el-button
+      >
+      <el-button
+        type="success"
+        size="large"
+        @click="handleSubmit(formRef)"
+        :loading="loading"
+        >创建文章</el-button
+      >
+    </template>
   </el-dialog>
 </template>
 
 <script setup name="ArticleDialog">
 import RichTextEditor from "@/components/RichTextEditor.vue";
-import { ref, useTemplateRef } from "vue";
+import { ref, useTemplateRef, nextTick } from "vue";
 import { storeToRefs } from "pinia";
 import { useAdminStore } from "@/store/admin.js";
 import { commonTags, fileServerUrl } from "@/constants/index.js";
-import { uploadFile } from "@/api/admin.js";
+import { uploadFile, createArticle } from "@/api/admin.js";
 import { ElMessage } from "element-plus";
 
 // props
@@ -114,7 +137,7 @@ const props = defineProps({
 //使用pinia管理弹窗状态和关闭方法
 const adminStore = useAdminStore();
 const { articleDialogVisible } = storeToRefs(adminStore);
-const { toggleArticleDialogVisible } = adminStore;
+const { closeArticleDialog } = adminStore;
 
 // 定义表单数据
 const formData = ref({
@@ -138,12 +161,18 @@ const rules = ref({
     },
   ],
   categoryId: [{ required: true, message: "请选择分类", trigger: "blur" }],
+  content: [
+    { required: true, message: "请输入文章内容", trigger: "blur" },
+    { max: 5000, message: "文章内容长度不能超过5000个字符", trigger: "blur" },
+  ],
 });
 // 定义表单实例
 // const formRef = ref(null);
 const formRef = useTemplateRef("formRef");
 // 定义上传实例
 const uploadRef = useTemplateRef("uploadRef");
+// 定义富文本实例（使用普通 ref，因为需要存储编辑器实例）
+const editorRef = ref(null);
 
 // 封面图片url
 const imgUrl = ref("");
@@ -182,12 +211,42 @@ const removeCover = () => {
 };
 
 // 富文本改变时触发
-const handleContentChange = (html) => {
-  formData.content = html;
+const handleContentChange = (data) => {
+  // console.log(data,'富文本内容');
+  formData.value.content = data.html;
 };
 // 富文本创建时触发
 const handleCreated = (editor) => {
-  formData.content = editor.html;
+  editorRef.value = editor;
+  //编辑时
+  if (formData.content && editor) {
+    //使用nextTick确保富文本实例创建完成后再设置内容，避免报错
+    nextTick(() => {
+      editor.setHtml(formData.content); //设置富文本内容
+    });
+  }
+};
+//预览效果
+const btnPreview = ref(false);
+// 加载状态
+const loading = ref(false);
+// 提交表单
+const handleSubmit = async (formRef) => {
+  if (!formRef) return;
+  formRef.validate(async (valid, fields) => {
+    if (valid) {
+      loading.value = true;
+    }
+    console.log(formData.value);
+    const submitData = {
+      ...formData.value,
+      tags: formData.value.tagArray.join(","),
+    };
+    delete submitData.tagArray;
+    await createArticle(submitData).then((res) => {
+      loading.value = false;
+    });
+  });
 };
 </script>
 
@@ -207,5 +266,8 @@ const handleCreated = (editor) => {
       background: #f6f8fa;
     }
   }
+}
+.footer-btn {
+  padding-top: 0 !important;
 }
 </style>

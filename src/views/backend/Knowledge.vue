@@ -2,7 +2,7 @@
   <div>
     <page-head>
       <template #buttons>
-        <el-button type="success" @click="toggleArticleDialogVisible()">新增</el-button>
+        <el-button type="success" @click="openArticleDialog()">新增</el-button>
       </template>
     </page-head>
     <table-search :form-item="formItem" @search="handleSearch" />
@@ -148,7 +148,7 @@ const handleCurrentChange = (page) => {
 };
 
 //新增和编辑文章
-const { toggleArticleDialogVisible } = adminStore;
+const { openArticleDialog } = adminStore;
 
 //生命周期：挂载完成后请求文章分类、文章列表
 onMounted(() => {

@@ -8,17 +8,20 @@ export const useAdminStore = defineStore('admin', () => {
   // 切换展开状态
   const toggleCollapse = () => {
     isCollapse.value = !isCollapse.value
-    // console.log(isCollapse.value);
   }
-  // 切换文章弹窗状态
-  const toggleArticleDialogVisible = () => {
-    articleDialogVisible.value = !articleDialogVisible.value
-    // console.log(articleDialogVisible.value);
+  // 文章弹窗状态-打开
+  const openArticleDialog = () => {
+    articleDialogVisible.value = true
+  }
+  // 文章弹窗状态-关闭
+  const closeArticleDialog = () => {
+    articleDialogVisible.value = false
   }
   return {
     isCollapse,
     toggleCollapse,
     articleDialogVisible,
-    toggleArticleDialogVisible
+    openArticleDialog,
+    closeArticleDialog
   }
 }, { persist: true })
