@@ -1,42 +1,101 @@
 <template>
-  <el-dialog title="文章详情" v-model="articleDialogVisible" width="50%" @close="toggleArticleDialogVisible()">
+  <el-dialog
+    title="文章详情"
+    v-model="articleDialogVisible"
+    width="50%"
+    @close="toggleArticleDialogVisible()"
+  >
     <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px">
       <el-form-item label="文章标题" prop="title">
-        <el-input v-model="formData.title" placeholder="请输入文章标题" minlength="1" maxlength="200" show-word-limit
-          clearable />
+        <el-input
+          v-model="formData.title"
+          placeholder="请输入文章标题"
+          minlength="1"
+          maxlength="200"
+          show-word-limit
+          clearable
+        />
       </el-form-item>
       <el-form-item label="所属分类" prop="categoryId">
         <el-select v-model="formData.categoryId" placeholder="请选择分类">
-          <el-option v-for="item in props.cateList" :key="item.value" :label="item.label" :value="item.value" />
+          <el-option
+            v-for="item in props.cateList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
         </el-select>
       </el-form-item>
       <el-form-item label="文章摘要" prop="summary">
-        <el-input v-model="formData.summary" type="textarea" :rows="4" maxlength="1000" show-word-limit
-          placeholder="请输入文章摘要(可选 )" />
+        <el-input
+          v-model="formData.summary"
+          type="textarea"
+          :rows="4"
+          maxlength="1000"
+          show-word-limit
+          placeholder="请输入文章摘要(可选 )"
+        />
       </el-form-item>
       <el-form-item label="标签" prop="tags">
-        <el-select style="width: 100%" v-model="formData.tagsArray" placeholder="请输入文章标签(多个标签用逗号隔开)" allow-create
-          multiple filterable clearable>
-          <el-option v-for="item in commonTags" :key="item" :label="item" :value="item" />
+        <el-select
+          style="width: 100%"
+          v-model="formData.tagsArray"
+          placeholder="请输入文章标签(多个标签用逗号隔开)"
+          allow-create
+          multiple
+          filterable
+          clearable
+        >
+          <el-option
+            v-for="item in commonTags"
+            :key="item"
+            :label="item"
+            :value="item"
+          />
         </el-select>
       </el-form-item>
       <el-form-item label="封面图片" prop="coverImage">
         <div class="cover-upload">
-          <el-upload ref="uploadRef" action="#" :before-upload="beforeUpload" :http-request="handleUploadRequest"
-            accept="image/*" drag :limit="1" :show-file-list="false">
+          <el-upload
+            ref="uploadRef"
+            action="#"
+            :before-upload="beforeUpload"
+            :http-request="handleUploadRequest"
+            accept="image/*"
+            drag
+            :limit="1"
+            :show-file-list="false"
+          >
             <div class="cover-preview" v-if="!imgUrl">
               <p>拖拽或点击上传封面图片</p>
             </div>
             <el-image v-else class="cover-preview" :src="imgUrl" fit="cover" />
           </el-upload>
-          <el-button v-if="imgUrl" type="danger" size="small" @click="removeCover">移除封面</el-button>
+          <el-button
+            v-if="imgUrl"
+            type="danger"
+            size="small"
+            @click="removeCover"
+            >移除封面</el-button
+          >
         </div>
+      </el-form-item>
+      <el-form-item label="文章内容" prop="content">
+        <RichTextEditor
+          v-model="formData.content"
+          placeholder="请输入文章内容，支持富文本格式\n\n可以使用加粗、斜体、列表、标题等格式丰富内容"
+          :maxCharCount="5000"
+          min-height="400px"
+          @change="handleContentChange"
+          @created="handleCreated"
+        />
       </el-form-item>
     </el-form>
   </el-dialog>
 </template>
 
 <script setup name="ArticleDialog">
+import RichTextEditor from "@/components/RichTextEditor.vue";
 import { ref, useTemplateRef } from "vue";
 import { storeToRefs } from "pinia";
 import { useAdminStore } from "@/store/admin.js";
@@ -86,7 +145,6 @@ const formRef = useTemplateRef("formRef");
 // 定义上传实例
 const uploadRef = useTemplateRef("uploadRef");
 
-
 // 封面图片url
 const imgUrl = ref("");
 // 上传图片前校验
@@ -103,7 +161,7 @@ const beforeUpload = (file) => {
     ElMessage.error("上传图片大小不能超过5MB!");
     return false;
   }
-  return true;//校验通过，返回true，继续上传
+  return true; //校验通过，返回true，继续上传
 };
 //上传图片请求
 const handleUploadRequest = async ({ file }) => {
@@ -112,16 +170,25 @@ const handleUploadRequest = async ({ file }) => {
   const { filePath } = await uploadFile(file, { businessId });
   // console.log(fileRes);
   //拼接完整的url
-  imgUrl.value = fileServerUrl + filePath
-  formData.coverImage = filePath
-}
+  imgUrl.value = fileServerUrl + filePath;
+  formData.coverImage = filePath;
+};
 // 移除封面
 const removeCover = () => {
-  imgUrl.value = ""
-  formData.coverImage = ""
+  imgUrl.value = "";
+  formData.coverImage = "";
   // 清空上传实例中的文件列表,(去除limit限制,允许上传多个文件,这里就可以注释)
   uploadRef.value?.clearFiles();
-}
+};
+
+// 富文本改变时触发
+const handleContentChange = (html) => {
+  formData.content = html;
+};
+// 富文本创建时触发
+const handleCreated = (editor) => {
+  formData.content = editor.html;
+};
 </script>
 
 <style lang="scss" scoped>
@@ -140,6 +207,5 @@ const removeCover = () => {
       background: #f6f8fa;
     }
   }
-
 }
 </style>
