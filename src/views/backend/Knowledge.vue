@@ -2,34 +2,14 @@
   <div>
     <page-head>
       <template #buttons>
-        <el-button type="success" @click="toggleArticleDialogVisible()"
-          >新增</el-button
-        >
+        <el-button type="success" @click="toggleArticleDialogVisible()">新增</el-button>
       </template>
     </page-head>
     <table-search :form-item="formItem" @search="handleSearch" />
-    <el-table
-      :data="tableData"
-      stripe
-      style="width: 100%; margin-top: 25px; cursor: pointer"
-      highlight-current-row
-      border
-      show-overflow-tooltip
-    >
-      <el-table-column
-        type="selection"
-        label="选择文章"
-        width="50"
-        fixed
-        align="center"
-      />
-      <el-table-column
-        type="index"
-        label="序号"
-        width="55"
-        fixed
-        align="center"
-      />
+    <el-table :data="tableData" stripe style="width: 100%; margin-top: 25px; cursor: pointer" highlight-current-row
+      border show-overflow-tooltip>
+      <el-table-column type="selection" label="选择文章" width="50" fixed align="center" />
+      <el-table-column type="index" label="序号" width="55" fixed align="center" />
       <el-table-column label="文章标题" width="200" fixed align="center">
         <!-- <template #default="scope"> -->
         <!-- 这里我直接解构到底了 原来scope.row.title -->
@@ -52,61 +32,26 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column
-        prop="authorName"
-        label="作者"
-        width="150"
-        align="center"
-      />
-      <el-table-column
-        prop="readCount"
-        label="阅读量"
-        width="75"
-        align="center"
-      />
-      <el-table-column
-        prop="publishedAt"
-        label="发布时间"
-        width="200"
-        align="center"
-      />
-      <el-table-column
-        prop="statusText"
-        label="状态"
-        width="150"
-        align="center"
-      />
+      <el-table-column prop="authorName" label="作者" width="150" align="center" />
+      <el-table-column prop="readCount" label="阅读量" width="75" align="center" />
+      <el-table-column prop="publishedAt" label="发布时间" width="200" align="center" />
+      <el-table-column prop="statusText" label="状态" width="150" align="center" />
 
       <el-table-column label="操作" width="200" fixed="right" align="center">
         <template #default="scope">
           <el-button-group direction="horizontal" size="small">
             <el-button type="primary" text>编辑</el-button>
-            <el-button
-              type="success"
-              text
-              v-if="scope.row.status === 0 || scope.row.status === 2"
-              >发布</el-button
-            >
-            <el-button type="warning" text v-if="scope.row.status === 1"
-              >下线</el-button
-            >
+            <el-button type="success" text v-if="scope.row.status === 0 || scope.row.status === 2">发布</el-button>
+            <el-button type="warning" text v-if="scope.row.status === 1">下线</el-button>
             <el-button type="danger" text>删除</el-button>
           </el-button-group>
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
-      style="margin-top: 20px; display: flex; justify-content: flex-end"
-      :page-sizes="[1, 5, 10, 20, 30, 50, 100]"
-      :page-size="pagination.size"
-      :total="pagination.total"
-      :pager-count="7"
-      :current-page="pagination.currentPage"
-      layout="total, sizes, prev, pager, next, jumper"
-      background
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-    />
+    <el-pagination style="margin-top: 20px; display: flex; justify-content: flex-end"
+      :page-sizes="[1, 5, 10, 20, 30, 50, 100]" :page-size="pagination.size" :total="pagination.total" :pager-count="7"
+      :current-page="pagination.currentPage" layout="total, sizes, prev, pager, next, jumper" background
+      @size-change="handleSizeChange" @current-change="handleCurrentChange" />
     <article-dialog :cateList="cateList" />
   </div>
 </template>
@@ -160,7 +105,7 @@ const requestCate = async () => {
     };
   });
   console.log(cateList.value);
-  
+
   formItem.value[1].options = cateList.value;
 };
 
