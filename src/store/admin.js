@@ -5,7 +5,7 @@ export const useAdminStore = defineStore('admin', () => {
   const isCollapse = ref(false)
   // 文章弹窗状态
   const articleDialogVisible = ref(false)
-  // 切换展开状态
+  // 切换sidebar的展开状态
   const toggleCollapse = () => {
     isCollapse.value = !isCollapse.value
   }

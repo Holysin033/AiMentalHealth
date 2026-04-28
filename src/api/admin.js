@@ -1,6 +1,6 @@
 // 管理端接口
 import service from '@/utils/request'
-// 登录接口
+// 登录接口 /user/login
 export const login = async (data) => {
   return await service.post('/user/login', data)
 }
@@ -26,3 +26,14 @@ export const uploadFile = async (file, businessInfo) => {
 export const createArticle = async (data) => {
   return await service.post('/knowledge/article', data)
 }
+//获取知识文章详情 /knowledge/article/{id}
+export const getArticleDetail = async (id) => {
+  return await service.get(`/knowledge/article/${id}`)
+}
+// 更新知识文章 /knowledge/article/{id}
+export const updateArticle = async (id, data) => {
+  return await service.put(`/knowledge/article/${id}`, data)
+}
+
+
+

@@ -1,9 +1,9 @@
 <template>
   <el-dialog
-    title="文章详情"
+    :title="isEditing ? '编辑文章' : '文章详情'"
     v-model="articleDialogVisible"
     width="50%"
-    @close="closeArticleDialog()"
+    @close="handleDialogClose"
   >
     <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px">
       <el-form-item label="文章标题" prop="title">
@@ -103,7 +103,7 @@
         @click="btnPreview = !btnPreview"
         >{{ btnPreview ? "隐藏预览" : "预览效果" }}</el-button
       >
-      <el-button type="default" size="default" @click="closeArticleDialog()"
+      <el-button type="default" size="default" @click="handleDialogClose"
         >取消</el-button
       >
       <el-button
@@ -111,7 +111,7 @@
         size="large"
         @click="handleSubmit(formRef)"
         :loading="loading"
-        >创建文章</el-button
+        >{{ isEditing ? "更新文章" : "创建文章" }}</el-button
       >
     </template>
   </el-dialog>
@@ -119,11 +119,11 @@
 
 <script setup name="ArticleDialog">
 import RichTextEditor from "@/components/RichTextEditor.vue";
-import { ref, useTemplateRef, nextTick } from "vue";
+import { ref, useTemplateRef, nextTick, computed, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useAdminStore } from "@/store/admin.js";
 import { commonTags, fileServerUrl } from "@/constants/index.js";
-import { uploadFile, createArticle } from "@/api/admin.js";
+import { uploadFile, createArticle, updateArticle } from "@/api/admin.js";
 import { ElMessage } from "element-plus";
 
 // props
@@ -132,12 +132,21 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  article: {
+    type: Object,
+    default: null,
+    // default: () => {},
+  },
 });
+const emits = defineEmits(["success"]);
 
 //使用pinia管理弹窗状态和关闭方法
 const adminStore = useAdminStore();
 const { articleDialogVisible } = storeToRefs(adminStore);
 const { closeArticleDialog } = adminStore;
+
+// 判断是否为编辑文章
+const isEditing = computed(() => !!props.article?.id);
 
 // 定义表单数据
 const formData = ref({
@@ -193,14 +202,14 @@ const beforeUpload = (file) => {
   return true; //校验通过，返回true，继续上传
 };
 //上传图片请求
+const businessId = ref(null);
 const handleUploadRequest = async ({ file }) => {
   //UUID,这里使用原版
-  const businessId = crypto.randomUUID();
-  const { filePath } = await uploadFile(file, { businessId });
-  // console.log(fileRes);
+  businessId.value = crypto.randomUUID();
+  const { filePath } = await uploadFile(file, { businessId: businessId.value });
   //拼接完整的url
   imgUrl.value = fileServerUrl + filePath;
-  formData.coverImage = filePath;
+  formData.value.coverImage = filePath;
 };
 // 移除封面
 const removeCover = () => {
@@ -226,6 +235,28 @@ const handleCreated = (editor) => {
     });
   }
 };
+
+// 编辑时回显文章详情
+watch(
+  () => props.article,
+  (newVal) => {
+    if (newVal) {
+      // 确保富文本实例创建完成后再设置内容，避免报错
+      nextTick(() => {
+        formData.value = {
+          ...formData.value,
+          ...newVal,
+          tagsArray: newVal.tags?.split(","),
+        };
+        //使用现有id
+        businessId.value = newVal.id;
+        // 封面url
+        imgUrl.value = fileServerUrl + newVal.coverImage;
+      });
+    }
+  },
+);
+
 //预览效果
 const btnPreview = ref(false);
 // 加载状态
@@ -236,17 +267,51 @@ const handleSubmit = async (formRef) => {
   formRef.validate(async (valid, fields) => {
     if (valid) {
       loading.value = true;
+      const submitData = {
+        ...formData.value,
+        tags: formData.value.tagsArray?.join(","),
+      };
+      delete submitData.tagsArray;
+      if (isEditing.value) {
+        await updateArticle(props.article.id,submitData)
+        .then((res) => {
+          loading.value = false;
+          // console.log(res);
+          handleDialogClose();
+          emits("success");
+          ElMessage.success("文章更新成功");
+        })
+        .catch((err) => {
+          loading.value = false;
+          ElMessage.error(err.message || "文章更新失败");
+        })
+      } else {
+        submitData.id = businessId.value;
+        await createArticle(submitData)
+          .then((res) => {
+            loading.value = false;
+            // console.log(res);
+            handleDialogClose();
+            emits("success");
+            ElMessage.success("文章发布成功");
+          })
+          .catch((err) => {
+            loading.value = false;
+            ElMessage.error(err.message || "文章发布失败");
+          });
+      }
     }
-    console.log(formData.value);
-    const submitData = {
-      ...formData.value,
-      tags: formData.value.tagArray.join(","),
-    };
-    delete submitData.tagArray;
-    await createArticle(submitData).then((res) => {
-      loading.value = false;
-    });
   });
+};
+const handleDialogClose = () => {
+  //清空表单数据
+  formRef.value?.resetFields();
+  businessId.value = null;
+  formData.value.tagsArray = [];
+  //清空上传图片
+  removeCover();
+  //关闭弹窗
+  closeArticleDialog();
 };
 </script>
 
