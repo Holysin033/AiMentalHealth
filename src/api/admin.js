@@ -34,6 +34,16 @@ export const getArticleDetail = async (id) => {
 export const updateArticle = async (id, data) => {
   return await service.put(`/knowledge/article/${id}`, data)
 }
+// 更新文章状态 /knowledge/article/{id}/status
+export const updateArticleStatus = async (id, data) => {
+  return await service.put(`/knowledge/article/${id}/status`, data)
+}
+// 删除知识文章 /knowledge/article/{id}
+export const deleteArticle = async (id) => {
+  return await service.delete(`/knowledge/article/${id}`)
+}
+
+
 
 
 

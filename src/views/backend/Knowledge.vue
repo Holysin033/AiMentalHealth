@@ -6,28 +6,10 @@
       </template>
     </page-head>
     <table-search :form-item="formItem" @search="handleSearch" />
-    <el-table
-      :data="tableData"
-      stripe
-      style="width: 100%; margin-top: 25px; cursor: pointer"
-      highlight-current-row
-      border
-      show-overflow-tooltip
-    >
-      <el-table-column
-        type="selection"
-        label="选择文章"
-        width="50"
-        fixed
-        align="center"
-      />
-      <el-table-column
-        type="index"
-        label="序号"
-        width="55"
-        fixed
-        align="center"
-      />
+    <el-table :data="tableData" stripe style="width: 100%; margin-top: 25px; cursor: pointer" highlight-current-row
+      border show-overflow-tooltip>
+      <!-- <el-table-column type="selection" label="选择文章" width="50" fixed align="center" /> -->
+      <el-table-column type="index" label="序号" width="55" fixed align="center" />
       <el-table-column label="文章标题" width="200" fixed align="center">
         <!-- <template #default="scope"> -->
         <!-- 这里我直接解构到底了 原来scope.row.title -->
@@ -50,79 +32,43 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column
-        prop="authorName"
-        label="作者"
-        width="150"
-        align="center"
-      />
-      <el-table-column
-        prop="readCount"
-        label="阅读量"
-        width="75"
-        align="center"
-      />
-      <el-table-column
-        prop="updatedAt"
-        label="发布时间"
-        width="200"
-        align="center"
-      />
-      <el-table-column
-        prop="statusText"
-        label="状态"
-        width="150"
-        align="center"
-      />
+      <el-table-column prop="authorName" label="作者" width="150" align="center" />
+      <el-table-column prop="readCount" label="阅读量" width="75" align="center" />
+      <el-table-column prop="updatedAt" label="发布时间" width="200" align="center" />
+      <el-table-column prop="statusText" label="状态" width="150" align="center" />
       <el-table-column label="操作" width="200" fixed="right" align="center">
-        <template #default="scope">
+        <template #default="{row}">
           <el-button-group direction="horizontal" size="small">
-            <el-button type="primary" text @click="handleEdit(scope.row)"
-              >编辑</el-button
-            >
-            <el-button
-              type="success"
-              text
-              v-if="scope.row.status === 0 || scope.row.status === 2"
-              >发布</el-button
-            >
-            <el-button type="warning" text v-if="scope.row.status === 1"
-              >下线</el-button
-            >
-            <el-button type="danger" text>删除</el-button>
+            <el-button type="primary" text @click="handleEdit(row)">编辑</el-button>
+            <el-button type="success" text v-if="row.status === 0 || row.status === 2"
+              @click="handlePublish(row)">发布</el-button>
+            <el-button type="warning" text v-if="row.status === 1"
+              @click="handleOffline(row)">下线</el-button>
+            <el-button type="danger" text @click="handleDelete(row)">删除</el-button>
           </el-button-group>
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
-      style="margin-top: 20px; display: flex; justify-content: flex-end"
-      :page-sizes="[1, 5, 10, 20, 30, 50, 100]"
-      :page-size="pagination.size"
-      :total="pagination.total"
-      :pager-count="7"
-      :current-page="pagination.currentPage"
-      layout="total, sizes, prev, pager, next, jumper"
-      background
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-    />
-    <article-dialog
-      :cateList="cateList"
-      @success="handleSuccess"
-      :article="currentArticle"
-    />
+    <el-pagination style="margin-top: 20px; display: flex; justify-content: flex-end"
+      :page-sizes="[1, 5, 10, 20, 30, 50, 100]" :page-size="pagination.size" :total="pagination.total" :pager-count="7"
+      :current-page="pagination.currentPage" layout="total, sizes, prev, pager, next, jumper" background
+      @size-change="handleSizeChange" @current-change="handleCurrentChange" />
+    <article-dialog :cateList="cateList" @success="handleSuccess" :article="currentArticle" />
   </div>
 </template>
 
 <script setup name="Knowledge">
 import PageHead from "@/components/PageHead.vue";
 import TableSearch from "@/components/TableSearch.vue";
-import ArticleDialog from "@/views/backend/ArticleDialog.vue";
+import ArticleDialog from "@/components/ArticleDialog.vue";
 import { ref, onMounted, reactive } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
 import {
   getKnowledgeCate,
   getKnowledgeArticleList,
   getArticleDetail,
+  updateArticleStatus,
+  deleteArticle,
 } from "@/api/admin";
 import { useAdminStore } from "@/store/admin.js";
 
@@ -213,7 +159,6 @@ const handleCurrentChange = (page) => {
 const currentArticle = ref(null);
 // 新增文章成功
 const handleSuccess = () => {
-  
   handleSearch();
 };
 // 编辑文章
@@ -236,17 +181,69 @@ const handleEdit = async (row) => {
   }
 };
 
-// 删除文章
-const handleDelete = async (row) => {
-  if (!row.id) return;
-  await ElMessageBox.confirm("此操作将永久删除该文章, 是否继续?", "提示", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
+// 通用操作处理函数
+const handleAction = async (row, config) => {
+  const {
+    confirmText,
+    type = 'info',
+    apiFn,
+    apiParams = {},
+    successMessage,
+  } = config;
+
+  try {
+    await ElMessageBox.confirm(
+      `确认${confirmText}该文章"${row.title}"吗?`,
+      "操作提示!",
+      {
+        confirmButtonText: `确定${confirmText}`,
+        cancelButtonText: "取消",
+        type,
+      }
+    );
+
+    await apiFn(row.id, apiParams);
+    ElMessage.success(successMessage);
+    handleSearch();
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.message || "操作失败");
+    }
+  }
+};
+
+// 发布文章
+const handlePublish = (row) => {
+  handleAction(row, {
+    title: "发布文章",
+    confirmText: "发布",
+    apiFn: updateArticleStatus,
+    apiParams: { status: 1 },
+    successMessage: "发布成功!",
   });
 };
 
+// 下线文章
+const handleOffline = (row) => {
+  handleAction(row, {
+    title: "下线文章",
+    confirmText: "下线",
+    apiFn: updateArticleStatus,
+    apiParams: { status: 2 },
+    successMessage: "下线成功!",
+  });
+};
 
+// 删除文章
+const handleDelete = (row) => {
+  handleAction(row, {
+    title: "删除文章",
+    confirmText: "删除",
+    type: "warning",
+    apiFn: deleteArticle,
+    successMessage: "删除成功!",
+  });
+};
 
 //生命周期：挂载完成后请求文章分类、文章列表
 onMounted(() => {
