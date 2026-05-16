@@ -34,7 +34,8 @@
       </el-table-column>
       <el-table-column prop="authorName" label="作者" width="150" align="center" />
       <el-table-column prop="readCount" label="阅读量" width="75" align="center" />
-      <el-table-column prop="updatedAt" label="发布时间" width="200" align="center" />
+      <el-table-column prop="updatedAt" label="更新时间" width="200" align="center" />
+      <el-table-column prop="createdAt" label="创建时间" width="200" align="center" />
       <el-table-column prop="statusText" label="状态" width="150" align="center" />
       <el-table-column label="操作" width="200" fixed="right" align="center">
         <template #default="{row}">

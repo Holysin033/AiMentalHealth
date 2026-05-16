@@ -42,8 +42,14 @@ export const updateArticleStatus = async (id, data) => {
 export const deleteArticle = async (id) => {
   return await service.delete(`/knowledge/article/${id}`)
 }
-
-
-
+// 分页查询咨询会话 /psychological-chat/sessions
+export const getSessionsPages = async (data) => {
+  return await service.get('/psychological-chat/sessions', { params: data })
+}
+// 获取会话消息列表 /psychological-chat/sessions/{sessionId}/messages
+export const getSessionsLists = async (sessionId, data) => {
+  return await service.get(`/psychological-chat/sessions/${sessionId}/messages`, { params: data })
+}
+// 
 
 
