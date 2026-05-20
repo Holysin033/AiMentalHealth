@@ -4,6 +4,11 @@ import service from '@/utils/request'
 export const login = async (data) => {
   return await service.post('/user/login', data)
 }
+// 用户退出登录 /user/logout
+export const logout = async () => {
+  return await service.post('/user/logout')
+}
+
 // 获取知识文章分类 /knowledge/category/tree
 export const getKnowledgeCate = async () => {
   return await service.get('/knowledge/category/tree')
@@ -47,9 +52,19 @@ export const getSessionsPages = async (data) => {
   return await service.get('/psychological-chat/sessions', { params: data })
 }
 // 获取会话消息列表 /psychological-chat/sessions/{sessionId}/messages
-export const getSessionsLists = async (sessionId, data) => {
-  return await service.get(`/psychological-chat/sessions/${sessionId}/messages`, { params: data })
+export const getSessionsDetails = async (sessionId) => {
+  return await service.get(`/psychological-chat/sessions/${sessionId}/messages`)
 }
-// 
-
+// 分页查询情绪日记 /emotion-diary/admin/page
+export const getDiaryPages = async (data) => {
+  return await service.get('/emotion-diary/admin/page', { params: data })
+}
+// 删除情绪日记 /emotion-diary/admin/{id}
+export const deleteDiary = async (id) => {
+  return await service.delete(`/emotion-diary/admin/${id}`)
+}
+// 获取综合数据分析 /data-analytics/overview
+export const getOverview = async () => {
+  return await service.get('/data-analytics/overview')
+}
 

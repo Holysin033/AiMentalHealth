@@ -38,13 +38,12 @@
       <el-table-column prop="createdAt" label="创建时间" width="200" align="center" />
       <el-table-column prop="statusText" label="状态" width="150" align="center" />
       <el-table-column label="操作" width="200" fixed="right" align="center">
-        <template #default="{row}">
+        <template #default="{ row }">
           <el-button-group direction="horizontal" size="small">
             <el-button type="primary" text @click="handleEdit(row)">编辑</el-button>
             <el-button type="success" text v-if="row.status === 0 || row.status === 2"
               @click="handlePublish(row)">发布</el-button>
-            <el-button type="warning" text v-if="row.status === 1"
-              @click="handleOffline(row)">下线</el-button>
+            <el-button type="warning" text v-if="row.status === 1" @click="handleOffline(row)">下线</el-button>
             <el-button type="danger" text @click="handleDelete(row)">删除</el-button>
           </el-button-group>
         </template>
@@ -218,6 +217,7 @@ const handlePublish = (row) => {
   handleAction(row, {
     title: "发布文章",
     confirmText: "发布",
+    type: 'success',
     apiFn: updateArticleStatus,
     apiParams: { status: 1 },
     successMessage: "发布成功!",
