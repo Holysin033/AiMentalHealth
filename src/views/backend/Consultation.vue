@@ -1,20 +1,9 @@
 <template>
   <div>
     <page-head />
-    <el-table
-      :data="tableData"
-      stripe
-      style="width: 100%; margin-top: 25px; cursor: pointer"
-      highlight-current-row
-      border
-    >
-      <el-table-column
-        label="序号"
-        type="index"
-        width="55"
-        fixed
-        align="center"
-      />
+    <el-table :data="tableData" stripe style="width: 100%; margin-top: 25px; cursor: pointer" highlight-current-row
+      border>
+      <el-table-column label="序号" type="index" width="55" fixed align="center" />
       <el-table-column label="会话id" width="100" fixed align="center">
         <template #default="scope">
           <el-avatar :size="50">{{
@@ -29,44 +18,19 @@
           <div class="session-preview">{{ row.lastMessageContent }}</div>
         </template>
       </el-table-column>
-      <el-table-column
-        label="消息数"
-        prop="messageCount"
-        align="center"
-        width="70"
-      />
-      <el-table-column
-        label="时间"
-        prop="lastMessageTime"
-        align="center"
-        width="160"
-      />
+      <el-table-column label="消息数" prop="messageCount" align="center" width="70" />
+      <el-table-column label="时间" prop="lastMessageTime" align="center" width="160" />
       <el-table-column label="操作" width="90" fixed="right" align="center">
         <template #default="{ row }">
-          <el-button type="primary" text @click="viewSessionDetail(row)"
-            >详情</el-button
-          >
+          <el-button type="primary" text @click="viewSessionDetail(row)">详情</el-button>
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
-      style="margin-top: 20px; display: flex; justify-content: flex-end"
-      :page-sizes="[1, 5, 10, 20, 30, 50, 100]"
-      :page-size="pagination.size"
-      :total="pagination.total"
-      :pager-count="7"
-      :current-page="pagination.currentPage"
-      layout="total, sizes, prev, pager, next, jumper"
-      background
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-    />
-    <el-dialog
-      v-model="showDetialDialog"
-      title="咨询会话详情"
-      width="70%"
-      :close-on-click-modal="false"
-    >
+    <el-pagination style="margin-top: 20px; display: flex; justify-content: flex-end"
+      :page-sizes="[1, 5, 10, 20, 30, 50, 100]" :page-size="pagination.size" :total="pagination.total" :pager-count="7"
+      :current-page="pagination.currentPage" layout="total, sizes, prev, pager, next, jumper" background
+      @size-change="handleSizeChange" @current-change="handleCurrentChange" />
+    <el-dialog v-model="showDetialDialog" title="咨询会话详情" width="70%" :close-on-click-modal="false">
       <div class="session-detail">
         <div class="detail-header">
           <div class="detail-row">
@@ -87,12 +51,8 @@
             <h4>对话列表</h4>
           </div>
           <div class="messages-list" v-loading="loadingMessages">
-            <div
-              v-for="detail in sessionDetails"
-              :key="detail.id"
-              class="message-item"
-              :class="detail.senderType === 1 ? 'user-message' : 'ai-message'"
-            >
+            <div v-for="detail in sessionDetails" :key="detail.id" class="message-item"
+              :class="detail.senderType === 1 ? 'user-message' : 'ai-message'">
               <div class="message-header">
                 <span class="sender">{{
                   detail.senderType === 1 ? "用户" : "AI助手"
@@ -105,9 +65,7 @@
         </div>
       </div>
       <template #footer>
-        <el-button type="primary" @click="showDetialDialog = false"
-          >关闭</el-button
-        >
+        <el-button type="primary" @click="showDetialDialog = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -159,7 +117,7 @@ const viewSessionDetail = async (row) => {
   });
 };
 
-onMounted( () => {
+onMounted(() => {
   requestList();
 });
 </script>

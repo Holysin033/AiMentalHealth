@@ -127,32 +127,40 @@ const pagination = reactive({
   total: 0,
 });
 
+// 保存搜索条件（用于分页时保持搜索状态）
+const searchForm = reactive({});
+
 // 请求文章列表
 const requestList = async (formData = {}) => {
-  const params = {
-    ...pagination,
-    ...formData,
-  };
+  // 先更新搜索条件（如果有新条件）
+  if (Object.keys(formData).length > 0) {
+    Object.assign(searchForm, formData);
+  }
+
+  // 再构建请求参数（使用更新后的 searchForm）
+  const params = { ...searchForm, ...pagination };
+
   const { records, total: totalNum } = await getKnowledgeArticleList(params);
   tableData.value = records;
   pagination.total = totalNum;
-  // console.log(records);
 };
 // 搜索文章
-const handleSearch = (formData) => {
+const handleSearch = (formData = {}) => {
+  // 搜索时重置到第一页
+  pagination.currentPage = 1;
   requestList(formData);
 };
 // 分页大小改变
 const handleSizeChange = (val) => {
-  // console.log(`${val} items per page`);
   pagination.size = val;
-  handleSearch();
+  // 使用保存的搜索条件
+  requestList();
 };
 // 分页当前页改变
 const handleCurrentChange = (page) => {
-  // console.log(`current page: ${page}`);
   pagination.currentPage = page;
-  handleSearch();
+  // 使用保存的搜索条件
+  requestList();
 };
 
 // 当前文章详情
