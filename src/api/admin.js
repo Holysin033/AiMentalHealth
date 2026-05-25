@@ -64,7 +64,7 @@ export const deleteDiary = async (id) => {
   return await service.delete(`/emotion-diary/admin/${id}`)
 }
 // 获取综合数据分析 /data-analytics/overview
-export const getOverview = async () => {
+export const getAnalyticsOverview = async () => {
   return await service.get('/data-analytics/overview')
 }
 
