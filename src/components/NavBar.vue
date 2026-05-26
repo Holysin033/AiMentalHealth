@@ -35,10 +35,13 @@
 
 <script setup name="NavBar">
 import { computed, reactive, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { logout } from '@/api/admin'
+import { useRoute, useRouter } from "vue-router";
 import { useAdminStore } from '@/store/admin'
 import { storeToRefs } from 'pinia'
+import { ElMessageBox } from "element-plus";
 const route = useRoute();
+const router = useRouter()
 const adminStore = useAdminStore()
 const { isCollapse } = storeToRefs(adminStore) // 引入store中的isCollapse
 const { toggleCollapse } = adminStore// 引入切换展开状态的方法
@@ -58,9 +61,19 @@ const handleCommand = (command) => {
   console.log(command);
   if (command === "logout") {
     // 退出登录逻辑
-    alert("退出登录");
+    ElMessageBox.confirm('确定退出登录吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(() => {
+      logout().then(() => {
+       localStorage.removeItem('token')
+       localStorage.removeItem('userInfo')
+        router.push("/auth/login")
+      })
+    })
+    }
   }
-};
 // 处理头像加载错误
 const handleError = () => {
   stateV.avatarState = true;
