@@ -11,7 +11,7 @@
           <router-link to="/front/consultation" class="nav-link" v-if="isLoginIn">AI咨询</router-link>
           <router-link to="/front/emotion" class="nav-link" v-if="isLoginIn">情绪日记</router-link>
           <router-link to="/front/knowledge" class="nav-link">知识库</router-link>
-          <el-button class="logout-btn" @click="" v-if="isLoginIn">登录退出</el-button>
+          <el-button class="logout-btn" @click="handleLogin" v-if="isLoginIn">登录退出</el-button>
           <template v-else>
             <router-link to="/auth/login" class="nav-link">登录</router-link>
             <router-link to="/auth/register" class="nav-link">
@@ -25,7 +25,7 @@
       </div>
       <div class="footer-container">
         <div class="footer-bottom">
-         <p>&copy; 2023 心理健康AI助手. All rights reserved.</p>
+          <p>&copy; 2023 心理健康AI助手. All rights reserved.</p>
         </div>
       </div>
     </div>
@@ -35,9 +35,29 @@
 
 <script setup name="FrontendLayout">
 import { ref, onMounted } from 'vue';
+import { logout } from "@/api/admin";
+import { ElMessageBox } from "element-plus";
+import { useRouter } from "vue-router";
 
+const router = useRouter()
 const iconUrl = new URL('@/assets/images/机器人.png', import.meta.url).href
 const isLoginIn = ref(false)
+
+// 退出登录逻辑
+const handleLogin = () => {
+  ElMessageBox.confirm('确定退出登录吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    logout().then(() => {
+      localStorage.removeItem('token')
+      localStorage.removeItem('userInfo')
+      router.push("/auth/login")
+    })
+  })
+}
+
 onMounted(() => {
   localStorage.getItem('token') !== null ? isLoginIn.value = true : isLoginIn.value = false
 })

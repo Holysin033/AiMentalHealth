@@ -132,12 +132,15 @@ router.beforeEach((to, from, next) => {
 
   if (!token) {
     // 如果已经在登录页面，不再重定向，避免无限循环
-    if (to.path === '/auth/login') {
+    if (to.path === '/auth/login' || to.path === '/auth/register') {
       next()
       return
     }
-    next('/auth/login')
-    return
+    else {
+      next('/auth/login')
+      return
+    }
+    
   }
 
   try {

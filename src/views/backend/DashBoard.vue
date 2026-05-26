@@ -103,7 +103,7 @@
 
 <script setup name="Dashboard">
 import * as echarts from 'echarts'
-import { ref, onMounted } from "vue";
+import { ref, onMounted, useTemplateRef } from "vue";
 import { getAnalyticsOverview } from "@/api/admin";
 import { emotionChartOption, consultationChartOption, userActivityChartOption, trendData, dailyTrend, activityData } from "@/constants/index";
 
@@ -118,9 +118,9 @@ const analysisData = ref({})
 let emtionChart = ref(null)
 let consultationChart = ref(null)
 let userActivityChart = ref(null)
-const emotionChartRef = ref(null)
-const consultationChartRef = ref(null)
-const userActivityChartRef = ref(null)
+const emotionChartRef = useTemplateRef('emotionChartRef')
+const consultationChartRef = useTemplateRef('consultationChartRef')
+const userActivityChartRef = useTemplateRef('userActivityChartRef')
 
 // 初始化图表
 const initChart = (chartRef, chart, option) => {

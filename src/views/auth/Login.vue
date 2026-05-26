@@ -65,6 +65,12 @@ const submitForm = async (formEl) => {
           if (userInfo.userType === 2 && userInfo.userTypeDisplayName === '管理员') {
             router.push('/back/dashboard')
           }
+          else if (userInfo.userType === 1 && userInfo.userTypeDisplayName === '普通用户') {
+            router.push('/front/index')
+          }
+          else {
+            ElMessage.error('无效的账号类型，请联系管理员处理！！！！')
+          }
         }
         else {
           alert('没有账号，请先注册')
