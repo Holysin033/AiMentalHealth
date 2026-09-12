@@ -50,7 +50,7 @@
 </template>
 
 <script setup name="Register">
-import { register } from "@/api/common";
+import { register } from "@/api/frontend";
 import { ref, onMounted, useTemplateRef, reactive } from "vue";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";

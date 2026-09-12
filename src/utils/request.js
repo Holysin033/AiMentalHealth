@@ -27,23 +27,23 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (response) => {
     // 对响应数据做点什么
-    const {data,config,status} = response
+    const { data, config, status } = response
     if (status === 200) {
       return data.data
     } else {
-      if(data.code==='-1'){//token失效,登录超时，跳转到登录页面
-         if (!config.url?.includes('/login')){
-            ElMessage.error(data.msg||'登录过期，请重新登录')
-            // 清除登录信息
-            localStorage.removeItem('token')
-            localStorage.removeItem('userInfo')
-            // 跳转到登录页面
-            window.location.href = '/auth/login'
-         }
-         else{
-            ElMessage.error(data.msg||'登录过期，请重新登录')
-            return Promise.reject('网络请求失败...')
-         }
+      if (data.code === '-1') {//token失效,登录超时，跳转到登录页面
+        if (!config.url?.includes('/login')) {
+          ElMessage.error(data.msg || '登录过期，请重新登录')
+          // 清除登录信息
+          localStorage.removeItem('token')
+          localStorage.removeItem('userInfo')
+          // 跳转到登录页面
+          window.location.href = '/auth/login'
+        }
+        else {
+          ElMessage.error(data.msg || '登录过期，请重新登录')
+          return Promise.reject('网络请求失败...')
+        }
       }
     }
     return response

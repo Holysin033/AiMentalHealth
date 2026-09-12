@@ -1,11 +1,187 @@
 <template>
-  <div>
-    咨询页面
+  <div class="consultation-container">
+    <div class="sidebar">
+      <!-- AI 助手信息 -->
+      <div class="ai-assistant-info">
+        <div class="breathing-circle">
+          <el-image
+            :src="iconUrl1"
+            style="width: 25px; height: 25px"
+            alt="AI助手"
+          />
+        </div>
+        <h3 class="assistant-name">宁都AI助手</h3>
+        <div class="online-status">
+          <div class="status-dot"></div>
+          在线服务中
+        </div>
+      </div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-header">
+        <div class="header-left">
+          <div class="chat-avatar">
+            <el-image
+              :src="iconUrl"
+              style="width: 30px; height: 30px"
+              alt="AI助手"
+            />
+          </div>
+          <div class="chat-info">
+            <h2>宁都AI助手</h2>
+            <p>您的贴心AI助手，为您提供专业的心理咨询和建议</p>
+          </div>
+        </div>
+        <el-button circle title="新建会话" @click="createNewFrontendSession">
+          <el-icon>
+            <Plus />
+          </el-icon>
+        </el-button>
+      </div>
+      <!-- 聊天信息zone -->
+      <div class="chat-messages">
+        <div class="message-item ai-message" v-if="message.length === 0">
+          <div class="message-avatar">
+            <el-image
+              :src="iconUrl"
+              style="width: 18px; height: 18px"
+              alt="AI助手"
+            />
+          </div>
+          <div class="message-content">
+            <div class="message-bubble">
+              <p>
+                您好！我是小暖，您的AI心理健康助手。很高兴陪伴您，为您提供温暖的心理支持。请告诉我，今天您感觉怎么样？有什么想要分享的吗？
+              </p>
+            </div>
+            <div class="message-time">刚刚</div>
+          </div>
+        </div>
+      </div>
+      <!-- 输入框zone -->
+      <div class="chat-input">
+        <div class="input-container">
+          <el-input
+            class="message-input"
+            v-model="userMessage"
+            placeholder="请输入想分享的内容。"
+            type="textarea"
+            :rows="3"
+            :disabled="isAiTyping"
+            @keydown="handleKeyDown"
+            clearable
+          />
+        </div>
+        <el-button type="primary" class="send-btn" @click="sendMessage">
+          <el-icon>
+            <Promotion />
+          </el-icon>
+        </el-button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup name="Consulation">
+import { ref, onMounted } from "vue";
+import { Plus, Promotion } from "@element-plus/icons-vue";
+import { startSession, getSessionList } from "@/api/frontend";
+import { ElMessage } from "element-plus";
 
+const iconUrl = new URL("@/assets/images/robot-fill.png", import.meta.url).href;
+const iconUrl1 = new URL("@/assets/images/like.png", import.meta.url).href;
+// 是否正在输入中
+const isAiTyping = ref(false);
+
+// 消息内容
+const message = ref([]);
+// 用户输入的消息
+const userMessage = ref("");
+// 定义当前会话object
+const currentSession = ref(null);
+
+// 新建会话
+const createNewFrontendSession = () => {
+  //创建一个新的会话object
+  const newSession = {
+    sessionId: `temp_${Date.now()}`,
+    status: "temp",
+    sessionTitle: "新会话",
+  };
+  currentSession.value = newSession;
+};
+
+// 处理键盘事件
+const handleKeyDown = (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    //
+  }
+};
+
+// 开始新的会话
+const startNewSession = async (message) => {
+  //构建会话参数
+  const sessionParams = {
+    initialMessage: message,
+  };
+  //判断会话状态是否为历史会话
+  if (currentSession.value.sessionTitle === "新会话") {
+    sessionParams.sessionTitle = `宁都AI助手_${new Date().toLocaleString()}`;
+  } else {
+    sessionParams.sessionTitle = currentSession.value.sessionTitle;
+  }
+  await startSession(sessionParams).then((res) => {
+    // 后的数据转化成前端需要的格式
+    const sessionData = {
+      sessionId: res.sessionId,
+      status: res.status,
+      sessionTitle: sessionParams.sessionTitle,
+    };
+    // 判断会话状态是否为temp，是则更新会话数据
+    if (currentSession.value && currentSession.value.status === "temp") {
+      // 更新为正式会话
+      // currentSession.value = sessionData;
+      Object.assign(currentSession.value, sessionData);
+    } else {
+      currentSession.value = sessionData;
+    }
+    // 刷新会话列表
+    getSessionPage();
+  });
+};
+// 发送消息
+const sendMessage = () => {
+  if (!userMessage.value.trim()) return;
+  if (isAiTyping.value) {
+    ElMessage.warning("AI助手正在处理中，请稍后再发送");
+    return;
+  }
+  const message = userMessage.value.trim();
+  userMessage.value = "";
+
+  //判断会话状态是否为temp，如果是则创建新会话
+  if (currentSession.value.status === "temp") {
+    startNewSession(message);
+  }
+};
+
+// 左侧会话列表
+const sessionList = ref([]);
+const getSessionPage = async () => {
+  const params = {
+    pageNum: 1,
+    pageSize: 10,
+  };
+  const res = await getSessionList(params);
+  sessionList.value = res.data || [];
+};
+onMounted(() => {
+  // 初始化时获取会话列表
+  getSessionPage();
+  // 初始化时创建一个默认会话
+  createNewFrontendSession();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -21,10 +197,16 @@
 
     .ai-assistant-info {
       margin-bottom: 20px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 252, 248, 0.95) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(255, 252, 248, 0.95) 100%
+      );
       border-radius: 16px;
       padding: 16px;
-      box-shadow: 0 8px 32px rgba(251, 146, 60, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+      box-shadow:
+        0 8px 32px rgba(251, 146, 60, 0.06),
+        0 2px 8px rgba(0, 0, 0, 0.04);
       border: 1px solid rgba(251, 146, 60, 0.08);
       backdrop-filter: blur(10px);
       transition: all 0.3s ease;
@@ -92,7 +274,6 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-
       }
 
       .session-list {
@@ -189,7 +370,12 @@
     }
 
     .emotion-garden {
-      background: linear-gradient(135deg, #fef9e7 0%, #fcf4e6 50%, #f6f0e8 100%);
+      background: linear-gradient(
+        135deg,
+        #fef9e7 0%,
+        #fcf4e6 50%,
+        #f6f0e8 100%
+      );
       border-radius: 20px;
       padding: 16px;
       margin-bottom: 20px;
@@ -229,7 +415,12 @@
         z-index: 10;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         border: 2px solid rgba(255, 255, 255, 0.8);
-        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+        background: linear-gradient(
+          135deg,
+          #ff9a9e 0%,
+          #fecfef 50%,
+          #fecfef 100%
+        );
         color: #fff;
 
         .emotion-name {
@@ -302,7 +493,11 @@
         }
 
         .warm-suggestion {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
+          background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.95),
+            rgba(255, 255, 255, 0.8)
+          );
           border-radius: 16px;
           padding: 12px;
           margin-bottom: 16px;
@@ -357,7 +552,11 @@
             gap: 10px;
 
             .action-item {
-              background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+              background: linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.9),
+                rgba(255, 255, 255, 0.7)
+              );
               border-radius: 12px;
               padding: 12px;
               display: flex;
@@ -421,9 +620,15 @@
   }
 
   .chat-main {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 252, 250, 0.98) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 252, 250, 0.98) 100%
+    );
     border-radius: 20px;
-    box-shadow: 0 12px 40px rgba(251, 146, 60, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+    box-shadow:
+      0 12px 40px rgba(251, 146, 60, 0.08),
+      0 4px 16px rgba(0, 0, 0, 0.04);
     border: 1px solid rgba(251, 146, 60, 0.1);
     backdrop-filter: blur(10px);
     display: flex;
@@ -480,7 +685,11 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 252, 248, 0.05) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.02) 0%,
+        rgba(255, 252, 248, 0.05) 100%
+      );
       min-height: 0;
       max-height: calc(100vh - 200px);
       scrollbar-width: thin;
@@ -521,7 +730,11 @@
           max-width: 70%;
 
           .message-bubble {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 252, 248, 0.95) 100%);
+            background: linear-gradient(
+              135deg,
+              rgba(255, 255, 255, 0.9) 0%,
+              rgba(255, 252, 248, 0.95) 100%
+            );
             border-radius: 16px;
             padding: 12px 16px;
             position: relative;
@@ -553,11 +766,11 @@
 
             /* 错误消息样式 */
             .error-message {
-              background: linear-gradient(135deg, #FEF2F2 0%, #FECACA 100%);
-              border: 1px solid #F87171;
+              background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+              border: 1px solid #f87171;
               border-radius: 12px;
               padding: 12px 16px;
-              color: #991B1B;
+              color: #991b1b;
               font-weight: 500;
               display: flex;
               align-items: center;
@@ -580,7 +793,11 @@
       display: flex;
       gap: 12px;
       align-items: flex-end;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 252, 248, 0.7) 100%);
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.5) 0%,
+        rgba(255, 252, 248, 0.7) 100%
+      );
       backdrop-filter: blur(10px);
       flex-shrink: 0;
 
@@ -601,14 +818,16 @@
         height: 60px;
         width: 60px;
         border-radius: 16px;
-        background: linear-gradient(135deg, #fb923c 0%, #f59e0b 100%) !important;
+        background: linear-gradient(
+          135deg,
+          #fb923c 0%,
+          #f59e0b 100%
+        ) !important;
         border: none !important;
         box-shadow: 0 6px 20px rgba(251, 146, 60, 0.25);
         transition: all 0.3s ease;
       }
-
     }
-
   }
 }
 </style>
