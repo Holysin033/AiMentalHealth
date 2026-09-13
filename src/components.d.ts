@@ -60,6 +60,7 @@ declare module 'vue' {
     EpTimer: typeof import('~icons/ep/timer')['default']
     EpUser: typeof import('~icons/ep/user')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
+    MarkdownRenderer: typeof import('./components/MarkdownRenderer.vue')['default']
     NavBar: typeof import('./components/NavBar.vue')['default']
     PageHead: typeof import('./components/PageHead.vue')['default']
     RichTextEditor: typeof import('./components/RichTextEditor.vue')['default']

@@ -13,6 +13,16 @@ export const startSession = async (data) => {
 export const getSessionList = async (params) => {
   return await service.get('/psychological-chat/sessions', {params})
 }
+// 获取会话消息列表 /psychological-chat/sessions/{sessionId}/messages
+export const getSessionMessages = async (sessionId) => {
+  return await service.get(`/psychological-chat/sessions/${sessionId}/messages`)
+}
+// 删除咨询会话 /psychological-chat/sessions/{sessionId}
+export const deleteSession = async (sessionId) => {
+  return await service.delete(`/psychological-chat/sessions/${sessionId}`)
+}
+
+
 
 
 
