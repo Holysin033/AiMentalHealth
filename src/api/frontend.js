@@ -11,7 +11,7 @@ export const startSession = async (data) => {
 }
 // 分页查询咨询会话 /psychological-chat/sessions
 export const getSessionList = async (params) => {
-  return await service.get('/psychological-chat/sessions', {params})
+  return await service.get('/psychological-chat/sessions', { params })
 }
 // 获取会话消息列表 /psychological-chat/sessions/{sessionId}/messages
 export const getSessionMessages = async (sessionId) => {
@@ -21,10 +21,9 @@ export const getSessionMessages = async (sessionId) => {
 export const deleteSession = async (sessionId) => {
   return await service.delete(`/psychological-chat/sessions/${sessionId}`)
 }
-// 流式对话接口 /psychological-chat/stream
-export const streamChat = async (data) => {
-  return await service.post('/psychological-chat/stream', data)
-}
+// 注意：流式对话 /psychological-chat/stream 走 SSE，axios 无法处理，
+// 请使用 @/api/chatStream 中的 streamChat
+
 
 
 
