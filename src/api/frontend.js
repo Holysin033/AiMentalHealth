@@ -21,6 +21,12 @@ export const getSessionMessages = async (sessionId) => {
 export const deleteSession = async (sessionId) => {
   return await service.delete(`/psychological-chat/sessions/${sessionId}`)
 }
+// 流式对话接口 /psychological-chat/stream
+export const streamChat = async (data) => {
+  return await service.post('/psychological-chat/stream', data)
+}
+
+
 
 
 
