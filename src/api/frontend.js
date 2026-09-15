@@ -24,6 +24,12 @@ export const deleteSession = async (sessionId) => {
 // 注意：流式对话 /psychological-chat/stream 走 SSE，axios 无法处理，
 // 请使用 @/api/chatStream 中的 streamChat
 
+// 获取会话情绪分析结果 /psychological-chat/session/${sessionId}/emotion
+export const getSessionEmotion = async (sessionId) => {
+  return await service.get(`/psychological-chat/session/${sessionId}/emotion`)
+}
+
+
 
 
 

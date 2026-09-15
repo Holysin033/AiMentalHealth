@@ -12,6 +12,54 @@
           在线服务中
         </div>
       </div>
+      <!-- 情绪花园 -->
+      <div class="emotion-garden">
+        <div class="garden-header">
+          <div class="garden-title"> 情绪花园 </div>
+        </div>
+        <div class="emotion-info">
+          <div class="emotion-name">{{ currentEmotion.primaryEmotion }}</div>
+          <div class="emotion-score">{{ currentEmotion.emotionScore }}</div>
+        </div>
+        <div class="warm-tips">
+          <div class="emotion-status-text"><span class="status-label">今天感觉</span>
+            <span class="status-emotion">{{ currentEmotion.isNegative ? "需要关注" : "很不错" }}</span>
+          </div>
+        </div>
+        <div class="emotion-intensity">
+          <span class="intensity-dots">
+            <span v-for="dot in 3" :key="dot" class="dot"
+              :class="{ 'active': getIntensityClass(currentEmotion.emotionScore) >= dot }"></span>
+          </span>
+          <span class="intensity-text">{{ getRiskText(currentEmotion.riskLevel) }}</span>
+        </div>
+        <!-- 温暖建议卡片 -->
+        <div class="warm-suggestion" v-if="currentEmotion.suggestion">
+          <div class="suggestion-icon">💕</div>
+          <div class="suggestion-content">
+            <div class="suggestion-title">给你的建议</div>
+            <div class="suggestion-text">{{ currentEmotion.suggestion }}</div>
+          </div>
+        </div>
+        <!-- 治愈行动 -->
+        <div class="healing-actions" v-if="currentEmotion.improvementSuggestions.length > 0">
+          <div class="actions-title">治愈小行动</div>
+          <div class="actions-list">
+            <div class="action-item" v-for="action in currentEmotion.improvementSuggestions" :key="action">
+              <div class="action-icon">✔</div>
+              <div class="action-text">{{ action }}</div>
+            </div>
+          </div>
+        </div>
+        <!-- 风险提示 -->
+        <div class="risk-notice" v-if="currentEmotion.isNegative && currentEmotion.riskLevel > 1">
+          <div class="notice-icon">⭕</div>
+          <div class="notice-content">
+            <div class="notice-title">温馨提示</div>
+            <div class="notice-text">{{ currentEmotion.riskDescription }}</div>
+          </div>
+        </div>
+      </div>
       <!-- 会话列表 -->
       <div class="session-history">
         <h4 class="section-title">会话列表</h4>
@@ -142,22 +190,75 @@ import { ref, onMounted } from "vue";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import { ChatRound, Clock, DeleteFilled, Plus, Promotion } from "@element-plus/icons-vue";
-import { startSession, getSessionList, getSessionMessages, deleteSession } from "@/api/frontend";
+import { startSession, getSessionList, getSessionMessages, deleteSession, getSessionEmotion } from "@/api/frontend";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { id } from "element-plus/es/locale/index.mjs";
 
 const iconUrl = new URL("@/assets/images/robot-fill.png", import.meta.url).href;
 const iconUrl1 = new URL("@/assets/images/like.png", import.meta.url).href;
 const iconUrl2 = new URL("@/assets/images/users.png", import.meta.url).href;
+
 // 是否正在输入中
 const isAiTyping = ref(false);
-
 // 消息内容
 const message_ = ref([]);
 // 用户输入的消息
 const userMessage = ref("");
 // 定义当前会话object
 const currentSession = ref(null);
+
+// 情绪花园
+const currentEmotion = ref({
+  primaryEmotion: "中性",
+  emotionScore: 50,
+  isNegative: false,//是否为负面情绪
+  riskLevel: 0,
+  suggestion: "情绪状态平稳",
+  improvementSuggestions: [],
+  riskDescription: "",
+});
+// 获取情绪强度的class
+const getIntensityClass = (score) => {
+  if (score >= 61) {
+    return 3
+  } else if (score >= 31) {
+    return 2
+  } else {
+    return 1
+  }
+}
+// 获取情绪强度的文本
+const getRiskText = (level) => {
+  switch (level) {
+    case 0:
+      return "正常";
+    case 1:
+      return "关注";
+    case 2:
+      return "预警";
+    case 3:
+      return "危机";
+    default:
+      return "正常";
+  }
+}
+//
+const loadSessionEmotion = async (sessionId) => {
+  // 保证id格式正确
+  sessionId = sessionId?.toString().startsWith("session_") ? sessionId : `session_${sessionId}`;
+  try {
+    const res = await getSessionEmotion(sessionId);
+    if (res) {
+      // 与默认值合并，且保证 improvementSuggestions 始终为数组，避免模板取 undefined.length
+      currentEmotion.value = {
+        ...currentEmotion.value,
+        ...res,
+        improvementSuggestions: Array.isArray(res.improvementSuggestions) ? res.improvementSuggestions : [],
+      };
+    }
+  } catch (err) {
+    ElMessage.error(err?.message || "获取情绪分析失败");
+  }
+}
 
 // 新建会话
 const createNewFrontendSession = () => {
@@ -277,6 +378,8 @@ const startAiResponse = (sessionId, message) => {
       if (eventName === 'done') {
         isAiTyping.value = false;
         ctrl.abort();
+        // 加载会话情绪分析
+        loadSessionEmotion(currentSession.value.sessionId);
         return;
       }
       // 后端发 event: error 表示业务错误
@@ -316,6 +419,7 @@ const startAiResponse = (sessionId, message) => {
     },
     onclose: () => {
       // 开始情绪分析
+      loadSessionEmotion(currentSession.value.sessionId);
     }
   })
 }
@@ -377,6 +481,9 @@ const handleSessionClick = (session) => {
     .catch(() => {
       ElMessage.error(res.message || '获取会话消息失败');
     });
+  // 加载会话情绪分析
+  loadSessionEmotion(session.id);
+
   // 更新当前会话obj数据
   const sessionData = {
     sessionId: "session_" + session.id,
@@ -406,6 +513,7 @@ const handleDeleteSession = async (sessionId) => {
 const formatMessageContent = (content) => {
   return content.replace(/\n/g, '<br>');
 }
+
 
 
 
@@ -687,156 +795,157 @@ onMounted(() => {
           }
         }
 
-        .emotion-intensity {
-          margin-bottom: 16px;
+      }
+
+      .emotion-intensity {
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+
+        .intensity-dots {
+          display: flex;
+          gap: 4px;
+
+          .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            transition: all 0.3s ease;
+
+            &.active {
+              background: linear-gradient(135deg, #ff9a9e, #fecfef);
+              transform: scale(1.2);
+              box-shadow: 0 2px 8px rgba(255, 154, 158, 0.4);
+            }
+          }
+        }
+
+        .intensity-text {
+          font-size: 12px;
+          color: #8b7355;
+          font-weight: 500;
+        }
+      }
+
+      .warm-suggestion {
+        background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.95),
+            rgba(255, 255, 255, 0.8));
+        border-radius: 16px;
+        padding: 12px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+
+        .suggestion-icon {
+          font-size: 20px;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+
+        .suggestion-content {
+          text-align: left;
+          flex: 1;
+
+          .suggestion-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #8b7355;
+            margin-bottom: 6px;
+          }
+
+          .suggestion-text {
+            font-size: 13px;
+            color: #6b5b47;
+            line-height: 1.5;
+          }
+        }
+      }
+
+      .healing-actions {
+        margin-bottom: 16px;
+
+        .actions-title {
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-
-          .intensity-dots {
-            display: flex;
-            gap: 4px;
-
-            .dot {
-              width: 8px;
-              height: 8px;
-              border-radius: 50%;
-              background: #e0e0e0;
-              transition: all 0.3s ease;
-
-              &.active {
-                background: linear-gradient(135deg, #ff9a9e, #fecfef);
-                transform: scale(1.2);
-                box-shadow: 0 2px 8px rgba(255, 154, 158, 0.4);
-              }
-            }
-          }
-
-          .intensity-text {
-            font-size: 12px;
-            color: #8b7355;
-            font-weight: 500;
-          }
+          font-size: 14px;
+          font-weight: 600;
+          color: #8b7355;
+          margin-bottom: 16px;
         }
 
-        .warm-suggestion {
-          background: linear-gradient(135deg,
-              rgba(255, 255, 255, 0.95),
-              rgba(255, 255, 255, 0.8));
-          border-radius: 16px;
-          padding: 12px;
-          margin-bottom: 16px;
+        .actions-list {
           display: flex;
-          align-items: flex-start;
+          flex-direction: column;
           gap: 10px;
-          border: 1px solid rgba(255, 255, 255, 0.6);
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 
-          .suggestion-icon {
-            font-size: 20px;
-            flex-shrink: 0;
-            margin-top: 2px;
-          }
-
-          .suggestion-content {
-            text-align: left;
-            flex: 1;
-
-            .suggestion-title {
-              font-size: 14px;
-              font-weight: 600;
-              color: #8b7355;
-              margin-bottom: 6px;
-            }
-
-            .suggestion-text {
-              font-size: 13px;
-              color: #6b5b47;
-              line-height: 1.5;
-            }
-          }
-        }
-
-        .healing-actions {
-          margin-bottom: 16px;
-
-          .actions-title {
+          .action-item {
+            background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.9),
+                rgba(255, 255, 255, 0.7));
+            border-radius: 12px;
+            padding: 12px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #8b7355;
-            margin-bottom: 16px;
-          }
-
-          .actions-list {
-            display: flex;
-            flex-direction: column;
             gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            text-align: left;
 
-            .action-item {
-              background: linear-gradient(135deg,
-                  rgba(255, 255, 255, 0.9),
-                  rgba(255, 255, 255, 0.7));
-              border-radius: 12px;
-              padding: 12px;
-              display: flex;
-              align-items: center;
-              gap: 10px;
-              border: 1px solid rgba(255, 255, 255, 0.5);
-              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-              text-align: left;
+            .action-icon {
+              font-size: 14px;
+              color: #ffd700;
+              flex-shrink: 0;
+            }
 
-              .action-icon {
-                font-size: 14px;
-                color: #ffd700;
-                flex-shrink: 0;
-              }
-
-              .action-text {
-                font-size: 12px;
-                color: #6b5b47;
-                line-height: 1.4;
-                flex: 1;
-              }
+            .action-text {
+              font-size: 12px;
+              color: #6b5b47;
+              line-height: 1.4;
+              flex: 1;
             }
           }
         }
+      }
 
-        .risk-notice {
-          background: linear-gradient(135deg, #fff9e6, #ffeaa7);
-          border-radius: 16px;
-          padding: 16px;
-          display: flex;
-          align-items: flex-start;
-          gap: 12px;
-          border: 1px solid rgba(255, 234, 167, 0.6);
-          box-shadow: 0 6px 20px rgba(255, 234, 167, 0.3);
+      .risk-notice {
+        background: linear-gradient(135deg, #fff9e6, #ffeaa7);
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        border: 1px solid rgba(255, 234, 167, 0.6);
+        box-shadow: 0 6px 20px rgba(255, 234, 167, 0.3);
 
-          .notice-icon {
-            font-size: 20px;
-            flex-shrink: 0;
-            margin-top: 2px;
+        .notice-icon {
+          font-size: 20px;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+
+        .notice-content {
+          flex: 1;
+
+          .notice-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #d4840f;
+            margin-bottom: 6px;
           }
 
-          .notice-content {
-            flex: 1;
-
-            .notice-title {
-              font-size: 14px;
-              font-weight: 600;
-              color: #d4840f;
-              margin-bottom: 6px;
-            }
-
-            .notice-text {
-              font-size: 13px;
-              color: #b8740c;
-              line-height: 1.5;
-            }
+          .notice-text {
+            font-size: 13px;
+            color: #b8740c;
+            line-height: 1.5;
           }
         }
       }
