@@ -85,7 +85,9 @@ const pagination = ref({
 
 const requestList = async () => {
   const { records, total: totalNum } = await getSessionsPages(pagination.value);
-  tableData.value = records;
+  tableData.value = records // 默认id排序
+  // tableData.value = records?.sort((a, b) => b.lastMessageTime - a.lastMessageTime);
+  // tableData.value = records.filter((item) => item.sessionTitle.includes('宁都'));
   pagination.value.total = totalNum;
 };
 // 分页大小改变

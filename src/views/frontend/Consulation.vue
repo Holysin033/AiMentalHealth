@@ -75,7 +75,7 @@
       </div>
       <!-- 聊天信息zone -->
       <div class="chat-messages">
-        <div class="message-item ai-message" v-if="messages.length === 0">
+        <div class="message-item ai-message" v-if="message_.length === 0">
           <div class="message-avatar">
             <el-image :src="iconUrl" style="width: 18px; height: 18px" alt="AI助手" />
           </div>
@@ -88,7 +88,7 @@
             <div class="message-time">刚刚</div>
           </div>
         </div>
-        <div class="message-item" v-for="msg in messages" :key="msg.id"
+        <div class="message-item" v-for="msg in message_" :key="msg.id"
           :class="msg.senderType === 1 ? 'user-message' : 'ai-message'">
           <div class="message-avatar">
             <el-image :src="msg.senderType === 1 ? iconUrl2 : iconUrl" style="width: 18px; height: 18px" alt="用户/助手" />
@@ -111,8 +111,7 @@
               <!-- 用户正常回复 -->
               <p v-else v-html="formatMessageContent(msg.content)"></p>
             </div>
-            <div class="message-time">{{ msg.senderType === 2 && isAiTyping ? '思考中' : formatChatTime(msg.createdAt)
-            }}</div>
+            <div class="message-time">{{ msg.senderType === 2 && isAiTyping ? '思考中' : msg.created_at }}</div>
           </div>
         </div>
       </div>
@@ -140,25 +139,21 @@
 
 <script setup name="Consulation">
 import { ref, onMounted } from "vue";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
 import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import { ChatRound, Clock, DeleteFilled, Plus, Promotion } from "@element-plus/icons-vue";
 import { startSession, getSessionList, getSessionMessages, deleteSession } from "@/api/frontend";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { useChatStream } from "@/composables/useChatStream";
+import { id } from "element-plus/es/locale/index.mjs";
 
 const iconUrl = new URL("@/assets/images/robot-fill.png", import.meta.url).href;
 const iconUrl1 = new URL("@/assets/images/like.png", import.meta.url).href;
 const iconUrl2 = new URL("@/assets/images/users.png", import.meta.url).href;
+// 是否正在输入中
+const isAiTyping = ref(false);
 
-// 流式对话：消息列表、输入状态、startAiResponse、handleError、卸载中止均收敛在 composable
-const {
-  messages,
-  isAiTyping,
-  appendUserMessage,
-  setMessages,
-  startAiResponse,
-  stopStream,
-} = useChatStream();
+// 消息内容
+const message_ = ref([]);
 // 用户输入的消息
 const userMessage = ref("");
 // 定义当前会话object
@@ -173,9 +168,13 @@ const createNewFrontendSession = () => {
     sessionTitle: "新会话",
   };
   currentSession.value = newSession;
+  // 清空消息列表
+  message_.value = [];
+  // 清空用户输入
+  userMessage.value = "";
 };
 
-// 处理键盘事件：Enter 发送，Shift+Enter 换行
+// 处理键盘事件
 const handleKeyDown = (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
@@ -184,56 +183,174 @@ const handleKeyDown = (e) => {
 };
 
 // 开始新的会话
-// @returns {Promise<boolean>} 会话是否创建成功（失败时 sendMessage 回填输入内容）
 const startNewSession = async (message) => {
   //构建会话参数
   const sessionParams = {
     initialMessage: message,
-    //判断会话状态是否为历史会话
-    sessionTitle:
-      currentSession.value.sessionTitle === "新会话"
-        ? `宁都AI助手_${new Date().toLocaleString()}`
-        : currentSession.value.sessionTitle,
   };
-  try {
-    const res = await startSession(sessionParams);
-    // startNewSession 只会在 temp 状态下调用，直接替换为正式会话
-    currentSession.value = {
-      sessionId: res.sessionId,
-      status: res.status,
-      sessionTitle: sessionParams.sessionTitle,
-    };
-    // 刷新会话列表
-    getSessionPage();
-    // 添加初始用户消息
-    appendUserMessage(message);
-    // 开启流式对话
-    startAiResponse(currentSession.value.sessionId, message);
-    return true;
-  } catch (err) {
-    ElMessage.error(err?.message || "创建会话失败，请重试");
-    return false;
+  //判断会话状态是否为历史会话
+  if (currentSession.value.sessionTitle === "新会话") {
+    sessionParams.sessionTitle = `宁都AI助手_${new Date().toLocaleString()}`;
+  } else {
+    sessionParams.sessionTitle = currentSession.value.sessionTitle;
   }
+  const res = await startSession(sessionParams);
+  // 后的数据转化成前端需要的格式
+  const sessionData = {
+    sessionId: res.sessionId,
+    status: res.status,
+    sessionTitle: sessionParams.sessionTitle,
+  };
+  // 判断会话状态是否为temp，是则更新会话数据
+  if (currentSession.value && currentSession.value.status === "temp") {
+    // 更新为正式会话
+    // currentSession.value = sessionData;
+    Object.assign(currentSession.value, sessionData);
+  } else {
+    currentSession.value = sessionData;
+  }
+  // 刷新会话列表
+  getSessionPage();
+  // 添加初始用户消息
+  message_.value.push({
+    id: Date.now(),
+    senderType: 1,
+    content: message,
+    createdAt: new Date().toISOString(),
+  });
+  // 开启流式对话
+  startAiResponse(currentSession.value.sessionId, message);
 };
-
-// 发送消息
-const sendMessage = async () => {
-  const message = userMessage.value.trim();
-  if (!message) return;
+// 流式对话
+const startAiResponse = (sessionId, message) => {
+  //防止重复发送
   if (isAiTyping.value) {
     ElMessage.warning("AI助手正在处理中，请稍后再发送");
     return;
   }
+  // 开启流式对话
+  isAiTyping.value = true;
+  // 构建流式对话参数
+  const aiMessage = {
+    id: `ai_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    senderType: 2,
+    content: '',
+    createdAt: new Date().toISOString(),
+  };
+  message_.value.push(aiMessage);// 添加Ai消息到消息列表
+  // 调用流式对话接口
+  const ctrl = new AbortController();
+  fetchEventSource('/api/psychological-chat/stream', {
+    method: 'POST',
+    openWhenHidden: false,// 流式对话在页面隐藏时是否继续 默认false
+    headers: {
+      'Content-Type': 'application/json',// 请求体格式为json
+      'token': localStorage.getItem('token'),
+      'Accept': 'text/event-stream',// 流式对话返回的格式
+    },
+    body: JSON.stringify({
+      sessionId,
+      userMessage: message,
+    }),
+    signal: ctrl.signal,            // 取消请求信号
+    onopen: (response) => {
+      // 兼容后端可能返回的 text/event-stream;charset=UTF-8
+      const contentType = response.headers.get('Content-Type') || '';
+      if (!response.ok) {
+        handleError(`服务连接失败（HTTP ${response.status}）`);
+        ctrl.abort();
+        return;
+      }
+      if (!contentType.includes('text/event-stream')) {
+        handleError('服务器返回非流式对话数据');
+        ctrl.abort();
+      }
+    },
+    onmessage: (event) => {
+      // console.log('ai流式message', event);
+      // row为流式对话返回的每一行数据，包含message字段
+      const row = event.data?.trim()// 可选链操作符，避免空指针异常
+      if (!row) return;            // 过滤空行
+      const eventName = event.event;
+      const aiMessage = message_.value[message_.value.length - 1];// 获取当前Ai消息对象
+      // 后端发 event: done 表示流正常结束
+      if (eventName === 'done') {
+        isAiTyping.value = false;
+        ctrl.abort();
+        return;
+      }
+      // 后端发 event: error 表示业务错误
+      if (eventName === 'error') {
+        try {
+          const errPayload = JSON.parse(row);
+          handleError(errPayload.msg || errPayload.message || 'AI回复失败');
+        } catch {
+          handleError('AI回复失败');
+        }
+        ctrl.abort();
+        return;
+      }
+      // 默认消息事件：解析 JSON 分片
+      let payLoad;
+      try {
+        payLoad = JSON.parse(row);
+      } catch {
+        return; // 单个坏分片跳过，不让整条流崩溃
+      }
+      const ok = String(payLoad.code) === '200';
+      if (ok && payLoad.data && payLoad.data.content) {
+        aiMessage.content += payLoad.data.content;
+      }
+      else if (!ok) {
+        // handleError(payLoad.msg || payLoad.message || 'AI回复失败');
+        // ctrl.abort();
+        // 主动中止（done/error/onopen 中 ctrl.abort()）引发的错误不再重复提示
+        if (ctrl.signal.aborted) return;
+        handleError(error?.message || '网络连接中断，请重试');
+        // 不 throw 普通错误，否则库会自动重连 POST 导致重复提问
+      }
+    },
+    onerror: (error) => {
+      handleError(error || 'AI助手处理失败');
+      throw error;
+    },
+    onclose: () => {
+      // 开始情绪分析
+    }
+  })
+}
+// 错误处理方法
+const handleError = (err) => {
+  const aiMessage = message_.value[message_.value.length - 1];// 获取当前Ai消息对象
+  if (aiMessage) {
+    aiMessage.content = 'Ai回复失败，请重试';
+  }
+  isAiTyping.value = false;
+  ElMessage.error(err);
+}
+
+// 发送消息
+const sendMessage = () => {
+  if (!userMessage.value.trim()) return;
+  if (isAiTyping.value) {
+    ElMessage.warning("AI助手正在处理中，请稍后再发送");
+    return;
+  }
+  const message = userMessage.value.trim();
   userMessage.value = "";
 
   //判断会话状态是否为temp，如果是则创建新会话
   if (currentSession.value.status === "temp") {
-    const ok = await startNewSession(message);
-    // 创建失败时回填输入，避免内容丢失
-    if (!ok) userMessage.value = message;
-  } else {
+    startNewSession(message);
+  }
+  else {
     // 继续现有的对话
-    appendUserMessage(message);
+    message_.value.push({
+      id: Date.now(),
+      senderType: 1,
+      content: message,
+      createdAt: new Date().toISOString(),
+    })
     startAiResponse(currentSession.value.sessionId, message);
   }
 };
@@ -250,21 +367,25 @@ const getSessionPage = async () => {
 };
 // 处理会话点击事件
 const handleSessionClick = (session) => {
-  // 切换会话前中止正在进行的流，避免分片写入新会话的消息列表
-  stopStream();
+  // currentSession.value = session;
+  // // 刷新会话列表
+  // getSessionPage();
   getSessionMessages(session.id)
     .then((res) => {
-      setMessages(res);
+      message_.value = res || [];
     })
-    .catch((err) => {
-      ElMessage.error(err?.message || '获取会话消息失败');
+    .catch(() => {
+      ElMessage.error(res.message || '获取会话消息失败');
     });
   // 更新当前会话obj数据
-  currentSession.value = {
+  const sessionData = {
     sessionId: "session_" + session.id,
     status: "ACTIVE",
     sessionTitle: session.sessionTitle,
   };
+  currentSession.value = sessionData;
+
+
 };
 // 删除某一会话事件
 const handleDeleteSession = async (sessionId) => {
@@ -284,14 +405,6 @@ const handleDeleteSession = async (sessionId) => {
 // 格式化消息内容
 const formatMessageContent = (content) => {
   return content.replace(/\n/g, '<br>');
-}
-// 格式化消息时间
-const formatChatTime = (iso) => {
-  if (!iso) return '';
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 
