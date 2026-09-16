@@ -34,6 +34,29 @@ export const saveEmotionDiary = async (data) => {
   return await service.post('/emotion-diary', data)
 }
 
+// 查询知识文章列表 /knowledge/article/page
+// params: {
+//   sortField, 排序字段 默认 readCount
+//   sortDirection, 排序方向 默认 desc
+//   currentPage, 当前页
+//   size, 每页条数
+// }
+export const getKnowledgeArticleList = async (params) => {
+  return await service.get('/knowledge/article/page', { params })
+}
+
+// 获取知识文章详情 /knowledge/article/{id}
+// params: {
+//   id, 文章ID
+// }
+export const getKnowledgeArticleDetail = async (id) => {
+  return await service.get(`/knowledge/article/${id}`)
+}
+
+
+
+
+
 
 
 

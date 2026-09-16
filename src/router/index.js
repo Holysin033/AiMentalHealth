@@ -72,6 +72,14 @@ const frontendRoutes = [
         component: () => import('@/views/frontend/Knowledge.vue'),
         meta: {
           title: '知识库',
+        },
+      },
+      {
+        path: 'knowledge/article/:id',
+        name: 'article',
+        component: () => import('@/views/frontend/KnowledgeDetail.vue'),
+        meta: {
+          title: '知识文章详情',
         }
       },
       {
@@ -140,7 +148,7 @@ router.beforeEach((to, from, next) => {
       next('/auth/login')
       return
     }
-    
+
   }
 
   try {

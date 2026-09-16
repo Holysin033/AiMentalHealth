@@ -157,7 +157,7 @@
               <MarkdownRenderer v-else-if="msg.senderType === 2 && !msg.isError" :content="msg.content"
                 :is-ai-message="true" />
               <!-- 用户正常回复 -->
-              <p v-else v-html="formatMessageContent(msg.content)"></p>
+              <p v-else v-html="formatContent(msg.content)"></p>
             </div>
             <div class="message-time">{{ msg.senderType === 2 && isAiTyping ? '思考中' : msg.created_at }}</div>
           </div>
@@ -192,6 +192,7 @@ import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import { ChatRound, Clock, DeleteFilled, Plus, Promotion } from "@element-plus/icons-vue";
 import { startSession, getSessionList, getSessionMessages, deleteSession, getSessionEmotion } from "@/api/frontend";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { formatContent } from "@/utils/others";
 
 const iconUrl = new URL("@/assets/images/robot-fill.png", import.meta.url).href;
 const iconUrl1 = new URL("@/assets/images/like.png", import.meta.url).href;
@@ -518,10 +519,6 @@ const handleDeleteSession = async (sessionId) => {
   }).catch(() => {
     ElMessage.info('已取消删除');
   });
-}
-// 格式化消息内容
-const formatMessageContent = (content) => {
-  return content.replace(/\n/g, '<br>');
 }
 
 
