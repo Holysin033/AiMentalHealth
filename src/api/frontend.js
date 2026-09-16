@@ -29,6 +29,11 @@ export const getSessionEmotion = async (sessionId) => {
   return await service.get(`/psychological-chat/session/${sessionId}/emotion`)
 }
 
+// 创建或更新情绪日记 /emotion-diary
+export const saveEmotionDiary = async (data) => {
+  return await service.post('/emotion-diary', data)
+}
+
 
 
 

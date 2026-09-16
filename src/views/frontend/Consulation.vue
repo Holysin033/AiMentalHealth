@@ -273,6 +273,16 @@ const createNewFrontendSession = () => {
   message_.value = [];
   // 清空用户输入
   userMessage.value = "";
+  // 清空情绪分析
+  currentEmotion.value = {
+    primaryEmotion: "中性",
+    emotionScore: 50,
+    isNegative: false,//是否为负面情绪
+    riskLevel: 0,
+    suggestion: "情绪状态平稳",
+    improvementSuggestions: [],
+    riskDescription: "",
+  };
 };
 
 // 处理键盘事件
