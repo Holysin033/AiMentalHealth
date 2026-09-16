@@ -1,3 +1,9 @@
+<div align="right">
+
+**简体中文** | [English](./README.en.md)
+
+</div>
+
 # 🧠 AI 心理健康助手
 
 基于 **Vue 3 + Vite + Element Plus** 的心理健康自助平台，集成 **AI 流式心理对话（SSE）**、情绪日记、心理知识库等功能，提供用户端与管理端双角色界面。
@@ -77,6 +83,8 @@ npm run preview   # 本地预览构建产物
 ---
 
 ## 📁 项目结构
+
+```text
 ai_mental_health/
 ├── src/
 │   ├── api/                    # 接口层（按端拆分）
@@ -106,7 +114,7 @@ ai_mental_health/
 │   └── main.js
 ├── vite.config.js              # 代理、自动导入、别名配置
 └── package.json
-
+```
 
 ---
 
