@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import BackendLayout from '@/layouts/BackendLayout.vue'
 import FrontendLayout from '@/layouts/FrontendLayout.vue'
 import AuthLayout from '@/layouts/AuthLayout.vue'

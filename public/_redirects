@@ -1,0 +1,6 @@
+# API 代理：把所有 /api 请求转发到后端（200 表示 rewrite，浏览器无感知）
+# splat 表示匹配所有路径，:splat 表示将匹配到的路径作为参数传递给后端
+/api/*  http://159.75.169.224:1235/api/:splat  200
+
+# SPA fallback：所有未匹配路径交给 index.html（History 路由必需）
+/*    /index.html  200

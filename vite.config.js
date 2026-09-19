@@ -13,6 +13,7 @@ import IconsResolver from 'unplugin-icons/resolver'
 // https://vite.dev/config/
 const pathSrc = path.resolve(__dirname, 'src')//src目录路径 __dirname 当前目录
 export default defineConfig({
+  base: '/',// 基础路径，用于部署到服务器时，访问路径
   plugins: [
     vue(),
     vueDevTools(),// vue开发工具

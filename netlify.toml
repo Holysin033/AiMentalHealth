@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# 也可以在这里配置代理，与 _redirects 二选一即可
+# [[redirects]]
+#   from = "/api/*"
+#   to = "http://159.75.169.224:1235/api/:splat"
+#   status = 200
+#   force = true
