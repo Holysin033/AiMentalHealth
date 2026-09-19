@@ -27,7 +27,7 @@
                     <div class="emotion-card" v-for="item in emotionOptions" :key="item.name"
                         :class="{ 'selected': item.name === diaryForm.dominantEmotion }"
                         @click="selectEmotion(item.name)">
-                        <el-image :src="item.url" style="width: 40px; height: 40px;" alt="情感图标" />
+                        <el-image :src="item.url" style="width: 40px; height: 40px;" alt="情感图标" lazy/>
                         <div class="emotion-name">{{ item.name }}</div>
                     </div>
                 </div>

@@ -10,6 +10,8 @@
 
 > 纯前端学习项目，后端为公共测试服务，开箱即可运行体验。
 
+> 🌐 **在线体验**：[https://han-ai-assist.netlify.app](https://han-ai-assist.netlify.app)
+
 ---
 
 ## ✨ 功能特性
@@ -152,6 +154,35 @@ Body:   { sessionId, userMessage }
 
 ### 3. 按需自动导入
 Vite 插件自动注册 Element Plus 组件与图标（`unplugin-vue-components`），自动导入 Vue API（`unplugin-auto-import`），类型声明生成在 `src/auto-imports.d.ts` 与 `src/components.d.ts`。
+
+---
+
+## 🌐 在线部署
+
+项目已通过 **Netlify** 部署，访问地址：[https://han-ai-assist.netlify.app](https://han-ai-assist.netlify.app)
+
+### 部署配置
+
+- **构建配置**：`npm run build`，产物目录 `dist/`
+- **API 代理**（`public/_redirects`）：
+  - `/api/*` → `http://159.75.169.224:1235/api/:splat`（解决 HTTPS 页面调用 HTTP 接口的混合内容问题）
+  - `/files/*` → `http://159.75.169.224:1235/files/:splat`（图片等静态资源走相对路径，通过代理加载）
+  - `/*` → `/index.html`（SPA History 路由 fallback）
+- **路由模式**：History 模式（Netlify 通过 `_redirects` 提供 fallback，无需切 Hash 模式）
+
+### 响应速度优化
+
+由于后端服务器位于国内，Netlify 边缘节点在海外，跨地域请求存在一定延迟。已采取以下优化措施：
+
+| 优化项 | 说明 |
+|--------|------|
+| **API 代理加速** | 所有 `/api`、`/files` 请求走 Netlify 边缘代理，避免浏览器直连跨地域后端 |
+| **静态资源 CDN** | 打包产物自动走 Netlify 全球 CDN，Brotli 压缩 |
+| **路由懒加载** | 所有页面采用 `() => import()` 动态导入，首屏仅加载首页代码 |
+| **组件按需导入** | Element Plus 通过 `unplugin-vue-components` 按需注册，避免全量打包 |
+| **图片相对路径** | 图片 URL 改为相对路径 `/files/...`，通过代理加载，解决混合内容拦截 |
+
+> ⚠️ 后端为公共测试服务，接口响应速度受后端服务状态与网络链路影响，非前端可完全控制。
 
 ---
 

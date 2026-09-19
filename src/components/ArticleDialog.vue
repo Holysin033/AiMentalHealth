@@ -69,7 +69,7 @@
             <div class="cover-preview" v-if="!imgUrl">
               <p>拖拽或点击上传封面图片</p>
             </div>
-            <el-image v-else class="cover-preview" :src="imgUrl" fit="cover" />
+            <el-image v-else class="cover-preview" :src="imgUrl" fit="cover" lazy/>
           </el-upload>
           <el-button
             v-if="imgUrl"

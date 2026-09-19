@@ -10,6 +10,8 @@ A mental health self-care platform built with **Vue 3 + Vite + Element Plus**, f
 
 > A front-end learning project backed by a public test API. Works out of the box.
 
+> 🌐 **Live Demo**: [https://han-ai-assist.netlify.app](https://han-ai-assist.netlify.app)
+
 ---
 
 ## ✨ Features
@@ -59,15 +61,17 @@ A mental health self-care platform built with **Vue 3 + Vite + Element Plus**, f
 
 ```bash
 # 1. Clone the project
-git clone https://github.com/ <your-username> /ai_mental_health.git
-cd ai_mental_health </your-username>
+git clone https://github.com/<your-username>/ai_mental_health.git
+cd ai_mental_health
 
 # 2. Install dependencies
 npm install
 
 # 3. Start the dev server
 npm run dev
-open the URL printed in the console (defaults to `http://localhost:5173`).
+```
+
+Open the URL printed in the console (defaults to `http://localhost:5173`).
 
 ### Production Build
 
@@ -148,6 +152,35 @@ The response interceptor in `utils/request.js` unwraps and returns `data.data` d
 
 ### 3. On-demand Auto Import
 Vite plugins auto-register Element Plus components and icons (`unplugin-vue-components`) and auto-import Vue APIs (`unplugin-auto-import`). Type declarations are generated at `src/auto-imports.d.ts` and `src/components.d.ts`.
+
+---
+
+## 🌐 Online Deployment
+
+The project is deployed on **Netlify** at: [https://han-ai-assist.netlify.app](https://han-ai-assist.netlify.app)
+
+### Deployment Config
+
+- **Build**: `npm run build`, output to `dist/`
+- **API Proxy** (`public/_redirects`):
+  - `/api/*` → `http://159.75.169.224:1235/api/:splat` (avoids mixed-content issues when HTTPS pages call HTTP APIs)
+  - `/files/*` → `http://159.75.169.224:1235/files/:splat` (images load via relative paths through the proxy)
+  - `/*` → `/index.html` (SPA History mode fallback)
+- **Routing**: History mode (Netlify provides fallback via `_redirects`, no need for Hash mode)
+
+### Performance Optimizations
+
+Since the backend is hosted in China while Netlify's edge nodes are global, cross-region latency is unavoidable. The following optimizations have been applied:
+
+| Optimization | Description |
+|--------------|-------------|
+| **API Proxy** | All `/api` and `/files` requests go through Netlify's edge proxy instead of direct browser-to-backend calls |
+| **Static CDN** | Build artifacts are served via Netlify's global CDN with Brotli compression |
+| **Route Lazy Loading** | All pages use `() => import()` dynamic imports; first load only fetches home page code |
+| **On-demand Component Import** | Element Plus is tree-shaken via `unplugin-vue-components`, no full bundle |
+| **Relative Image Paths** | Image URLs use relative paths (`/files/...`) loaded through the proxy, avoiding mixed-content blocking |
+
+> ⚠️ The backend is a public test service; API response speed depends on backend status and network conditions, which are beyond front-end control.
 
 ---
 

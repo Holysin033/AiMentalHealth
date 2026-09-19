@@ -139,7 +139,7 @@
         <div class="message-item" v-for="msg in message_" :key="msg.id"
           :class="msg.senderType === 1 ? 'user-message' : 'ai-message'">
           <div class="message-avatar">
-            <el-image :src="msg.senderType === 1 ? iconUrl2 : iconUrl" style="width: 18px; height: 18px" alt="用户/助手" />
+            <el-image :src="msg.senderType === 1 ? iconUrl2 : iconUrl" style="width: 18px; height: 18px" alt="用户/助手" lazy/>
           </div>
           <div class="message-content">
             <div class="message-bubble">

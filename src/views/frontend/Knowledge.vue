@@ -42,7 +42,7 @@
         </div>
         <div v-for="article in articleList" :key="article.id" class="article-item" @click="goDetail(article.id)">
           <el-image :src="getImageSrc(article.coverImage)" style="width: 240px; height: 150px; border-radius: 10px"
-            fit="cover" />
+            fit="cover" lazy/>
           <div class="info">
             <div class="title">
               <h3>{{ article.title }}</h3>
@@ -142,14 +142,14 @@ const getImageSrc = (url) => {
 // 分页大小改变时触发
 const handleSizeChange = (val) => {
   pagination.size = val
-  console.log(val);
+  // console.log(val);
   loadList()
 }
 
 // 分页当前页改变时触发
 const handleCurrentChange = (val) => {
   pagination.currentPage = val
-    console.log(val);
+    // console.log(val);
   loadList()
 }
 
