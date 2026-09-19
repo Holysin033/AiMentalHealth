@@ -1,7 +1,7 @@
 import { reactive, ref } from "vue"
 
-//文件服务器地址
-export const fileServerUrl = 'http://159.75.169.224:1235'
+//文件服务器地址（留空，图片走相对路径 /files/...，由代理转发到后端，避免 HTTPS 页面加载 HTTP 图片）
+export const fileServerUrl = ''
 // 常用标签
 export const commonTags = [
   '情绪管理', '焦虑', '抑郁', '压力', '睡眠',
