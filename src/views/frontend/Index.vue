@@ -10,7 +10,7 @@
           每个深夜，每个焦虑的时刻。我们都在这里。不必独自承受，让心与心的连接温暖您的每一天。
         </p>
         <div class="hero-actions">
-          <el-button size="large">开始倾诉、获得陪伴</el-button>
+          <el-button size="large" type="default" @click="handleClick">开始倾诉、获得陪伴</el-button>
           <el-button size="large"
             style="border-color: #fff;background-color: transparent;color: #fff;">记录心情、释放情感</el-button>
         </div>
@@ -25,6 +25,9 @@
 <script setup name="Index">
 const iconUrl = new URL('@/assets/images/robot-fill.png', import.meta.url).href
 
+const handleClick = () => {
+  window.location.href = '/front/consultation'
+}
 </script>
 
 <style lang="scss" scoped>
